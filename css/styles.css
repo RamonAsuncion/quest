@@ -7,9 +7,9 @@
 }
 
 body {
-  font-family: 'Cinzel', serif;
-  background-color: #3D5A48;
-  color: #F1E6D8;
+  font-family: "Cinzel", serif;
+  background-color: #3d5a48;
+  color: #f1e6d8;
   padding: 20px;
   font-size: 1.2rem;
   line-height: 1.6;
@@ -30,7 +30,7 @@ body {
   background-color: rgb(249, 251, 250);
   border: 1px solid rgb(137, 151, 155);
   box-shadow: rgb(6 22 33 / 30%) 0px 1px 2px;
-  color: #3D5A48;
+  color: #3d5a48;
   font-size: 14px;
   font-weight: 400;
   height: 36px;
@@ -38,19 +38,19 @@ body {
 
 h1 {
   font-size: 2rem;
-  color: #F1E6D8;
+  color: #f1e6d8;
   margin-bottom: 20px;
   text-align: center;
 }
 
 a {
-  color: #F1E6D8;
+  color: #f1e6d8;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 a:hover {
-  color: #B37B4F;
+  color: #b37b4f;
 }
 
 #list {
@@ -61,4 +61,21 @@ a:hover {
 #quests {
   display: inline-block;
   text-align: left;
+}
+
+.new-quest {
+  font-weight: bold;
+  color: #ff6600;
+}
+
+.features-list {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  padding-left: 20px;
+  font-size: 0.9em;
+}
+
+.feature-item {
+  list-style-type: circle;
+  margin: 3px 0;
 }
