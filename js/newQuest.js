@@ -6,7 +6,7 @@ const quests = [
   "Quest 5: Shaping the Arcane Guardian",
   "Quest 6: The Arcane Path of Rays",
   "None",
-  "Quest 8: The Enchantment of Light and Texture",
+  "Quest 8: The Enchantment of Light and Texture (NEW)",
 ];
 
 const newQuestFeatures = {
