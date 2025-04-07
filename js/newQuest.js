@@ -4,7 +4,7 @@ const quests = [
   "Quest 3: The Alchemist's Canvas (NEW)",
   "Quest 4: The Enchanted Symphony of Motion",
   "Quest 5: Shaping the Arcane Guardian",
-  "Quest 6: The Arcane Path of Rays",
+  "Quest 6: The Arcane Path of Rays (NEW)",
   "None",
   "Quest 8: The Enchantment of Light and Texture (NEW)",
 ];
@@ -16,6 +16,11 @@ const newQuestFeatures = {
     "Added never dead cells (blue)!",
     "Integrated gamepad interactions!",
     "Integrated touchpad interactions!",
+  ],
+  "Quest 6: The Arcane Path of Rays (NEW)": [
+    "Added controls for focal length!",
+    "Added one object translation control!",
+    "Added one object rotation control!",
   ],
 };
 

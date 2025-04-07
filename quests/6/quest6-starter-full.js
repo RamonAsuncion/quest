@@ -1,1723 +1,1201 @@
-const _0x1c9c99 = _0x28a5;
-(function (_0x1eb278, _0x48d287) {
-  const _0x37ac09 = _0x28a5,
-    _0x50c539 = _0x1eb278();
-  while (!![]) {
-    try {
-      const _0x30da96 =
-        parseInt(_0x37ac09(0x1bd)) / 0x1 +
-        (-parseInt(_0x37ac09(0x1b8)) / 0x2) *
-          (parseInt(_0x37ac09(0x1a5)) / 0x3) +
-        (parseInt(_0x37ac09(0x20e)) / 0x4) *
-          (-parseInt(_0x37ac09(0x194)) / 0x5) +
-        (-parseInt(_0x37ac09(0x1de)) / 0x6) *
-          (parseInt(_0x37ac09(0x1c2)) / 0x7) +
-        -parseInt(_0x37ac09(0x231)) / 0x8 +
-        parseInt(_0x37ac09(0x216)) / 0x9 +
-        (parseInt(_0x37ac09(0x23c)) / 0xa) * (parseInt(_0x37ac09(0x19f)) / 0xb);
-      if (_0x30da96 === _0x48d287) break;
-      else _0x50c539["push"](_0x50c539["shift"]());
-    } catch (_0x25eab3) {
-      _0x50c539["push"](_0x50c539["shift"]());
-    }
-  }
-})(_0x4136, 0xe0c8b);
 class Renderer {
-  constructor(_0x35bb78) {
-    (this["_canvas"] = _0x35bb78),
-      (this["_objects"] = []),
-      (this["_clearColor"] = {
-        r: 0x0,
-        g: 0x38 / 0xff,
-        b: 0x65 / 0xff,
-        a: 0x1,
-      });
+  constructor(canvas) {
+    this._canvas = canvas;
+    this._objects = [];
+    this._clearColor = { r: 0, g: 56 / 255, b: 101 / 255, a: 1 };
   }
-  async [_0x1c9c99(0x1ae)]() {
-    const _0x4ae29c = _0x1c9c99;
-    if (!navigator[_0x4ae29c(0x21b)])
-      throw Error("WebGPU\x20is\x20not\x20supported\x20in\x20this\x20browser.");
-    const _0x47a87b = await navigator[_0x4ae29c(0x21b)][_0x4ae29c(0x209)]();
-    if (!_0x47a87b) throw Error(_0x4ae29c(0x244));
-    (this["_device"] = await _0x47a87b[_0x4ae29c(0x249)]()),
-      (this[_0x4ae29c(0x1cf)] = this["_canvas"][_0x4ae29c(0x23f)](
-        _0x4ae29c(0x23d)
-      )),
-      (this[_0x4ae29c(0x24d)] =
-        navigator[_0x4ae29c(0x21b)]["getPreferredCanvasFormat"]()),
-      this[_0x4ae29c(0x1cf)][_0x4ae29c(0x1f0)]({
-        device: this[_0x4ae29c(0x1b0)],
-        format: this["_canvasFormat"],
-      }),
-      this["resizeCanvas"](),
-      window["addEventListener"](
-        "resize",
-        this[_0x4ae29c(0x20b)][_0x4ae29c(0x175)](this)
-      );
-  }
-  [_0x1c9c99(0x20b)]() {
-    const _0x32d708 = _0x1c9c99,
-      _0x361b0f = window["devicePixelRatio"] || 0x1,
-      _0x496af1 = window[_0x32d708(0x250)] * _0x361b0f,
-      _0x5350c9 = window[_0x32d708(0x1c4)] * _0x361b0f;
-    (this["_canvas"]["width"] = _0x496af1),
-      (this[_0x32d708(0x1af)][_0x32d708(0x1a8)] = _0x5350c9),
-      (this[_0x32d708(0x1af)][_0x32d708(0x1d0)]["width"] =
-        window[_0x32d708(0x250)] + "px"),
-      (this[_0x32d708(0x1af)][_0x32d708(0x1d0)][_0x32d708(0x1a8)] =
-        window[_0x32d708(0x1c4)] + "px"),
-      (this[_0x32d708(0x1af)][_0x32d708(0x1d0)]["transformOrigin"] =
-        _0x32d708(0x187)),
-      this[_0x32d708(0x1d6)]();
-  }
-  async ["appendSceneObject"](_0x148534) {
-    const _0x287706 = _0x1c9c99;
-    await _0x148534[_0x287706(0x1ae)](),
-      this["_objects"][_0x287706(0x207)](_0x148534);
-  }
-  [_0x1c9c99(0x1ca)](_0x2484bb) {
-    const _0x502e0c = _0x1c9c99;
-    for (const _0x2500c6 of this[_0x502e0c(0x241)]) {
-      _0x2500c6?.[_0x502e0c(0x236)]();
+  async init() {
+    if (!navigator.gpu) {
+      throw Error("WebGPU is not supported in this browser.");
     }
-    let _0x3cffd9 = this[_0x502e0c(0x1b0)][_0x502e0c(0x1fa)]();
-    const _0x525d1e = _0x3cffd9["beginRenderPass"]({
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+      throw Error("Couldn't request WebGPU adapter.");
+    }
+    this._device = await adapter.requestDevice();
+    this._context = this._canvas.getContext("webgpu");
+    this._canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+    this._context.configure({
+      device: this._device,
+      format: this._canvasFormat,
+    });
+    this.resizeCanvas();
+    window.addEventListener("resize", this.resizeCanvas.bind(this));
+  }
+  resizeCanvas() {
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    const width = window.innerWidth * devicePixelRatio;
+    const height = window.innerHeight * devicePixelRatio;
+    this._canvas.width = width;
+    this._canvas.height = height;
+    this._canvas.style.width = `${window.innerWidth}px`;
+    this._canvas.style.height = `${window.innerHeight}px`;
+    this._canvas.style.transformOrigin = "center";
+    this.render();
+  }
+  async appendSceneObject(obj) {
+    await obj.init();
+    this._objects.push(obj);
+  }
+  renderToSelectedView(outputView) {
+    for (const obj of this._objects) {
+      obj?.updateGeometry();
+    }
+    let encoder = this._device.createCommandEncoder();
+    const pass = encoder.beginRenderPass({
       colorAttachments: [
         {
-          view: _0x2484bb,
-          clearValue: this["_clearColor"],
-          loadOp: _0x502e0c(0x1b9),
+          view: outputView,
+          clearValue: this._clearColor,
+          loadOp: "clear",
           storeOp: "store",
         },
       ],
     });
-    for (const _0x35f2d4 of this[_0x502e0c(0x241)]) {
-      _0x35f2d4?.[_0x502e0c(0x1d6)](_0x525d1e);
+    for (const obj of this._objects) {
+      obj?.render(pass);
     }
-    _0x525d1e[_0x502e0c(0x1b7)]();
-    const _0x19c328 = _0x3cffd9[_0x502e0c(0x19a)]();
-    for (const _0x24ae99 of this[_0x502e0c(0x241)]) {
-      _0x24ae99?.[_0x502e0c(0x1a1)](_0x19c328);
+    pass.end();
+    const computePass = encoder.beginComputePass();
+    for (const obj of this._objects) {
+      obj?.compute(computePass);
     }
-    _0x19c328[_0x502e0c(0x1b7)]();
-    const _0x2681fc = _0x3cffd9[_0x502e0c(0x19d)]();
-    this["_device"][_0x502e0c(0x23b)][_0x502e0c(0x1ff)]([_0x2681fc]);
+    computePass.end();
+    const commandBuffer = encoder.finish();
+    this._device.queue.submit([commandBuffer]);
   }
-  [_0x1c9c99(0x1d6)]() {
-    const _0x4d4793 = _0x1c9c99;
-    this[_0x4d4793(0x1ca)](
-      this[_0x4d4793(0x1cf)][_0x4d4793(0x16c)]()[_0x4d4793(0x202)]()
-    );
+  render() {
+    this.renderToSelectedView(this._context.getCurrentTexture().createView());
   }
 }
 class RayTracer extends Renderer {
-  constructor(_0xc8c128) {
-    const _0x24eba1 = _0x1c9c99;
-    super(_0xc8c128), (this[_0x24eba1(0x204)] = null);
+  constructor(canvas) {
+    super(canvas);
+    this._tracer = null;
   }
-  async [_0x1c9c99(0x1ae)]() {
-    const _0x1b0946 = _0x1c9c99;
-    if (!navigator["gpu"]) throw Error(_0x1b0946(0x232));
-    const _0x30403d = await navigator[_0x1b0946(0x21b)][_0x1b0946(0x209)]();
-    if (!_0x30403d) throw Error(_0x1b0946(0x244));
-    (this["_device"] = await _0x30403d[_0x1b0946(0x249)]()),
-      (this[_0x1b0946(0x1cf)] =
-        this[_0x1b0946(0x1af)][_0x1b0946(0x23f)]("webgpu")),
-      (this[_0x1b0946(0x24d)] = "rgba8unorm"),
-      this[_0x1b0946(0x1cf)][_0x1b0946(0x1f0)]({
-        device: this["_device"],
-        format: this[_0x1b0946(0x24d)],
-      }),
-      (this[_0x1b0946(0x1c8)] = this["_device"][_0x1b0946(0x1f2)]({
-        label: _0x1b0946(0x1dc),
-        code: "\x0a\x20\x20\x20\x20\x20\x20@vertex\x0a\x20\x20\x20\x20\x20\x20fn\x20vertexMain(@builtin(vertex_index)\x20vIdx:\x20u32)\x20->\x20@builtin(position)\x20vec4f\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20var\x20pos\x20=\x20array<vec2f,\x206>(\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20vec2f(-1,\x20-1),\x20vec2f(1,\x20-1),\x20vec2f(-1,\x201),\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20vec2f(-1,\x201),\x20vec2f(1,\x20-1),\x20vec2f(1,\x201)\x0a\x20\x20\x20\x20\x20\x20\x20\x20);\x0a\x20\x20\x20\x20\x20\x20\x20\x20return\x20vec4f(pos[vIdx],\x200,\x201);\x0a\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20\x0a\x20\x20\x20\x20\x20\x20@group(0)\x20@binding(0)\x20var\x20inTexture:\x20texture_2d<f32>;\x0a\x20\x20\x20\x20\x20\x20@group(0)\x20@binding(1)\x20var\x20inSampler:\x20sampler;\x0a\x20\x20\x20\x20\x20\x20@group(0)\x20@binding(2)\x20var<uniform>\x20imgSize:\x20vec2f;\x0a\x20\x20\x20\x20\x20\x20\x0a\x20\x20\x20\x20\x20\x20@fragment\x0a\x20\x20\x20\x20\x20\x20fn\x20fragmentMain(@builtin(position)\x20fragCoord:\x20vec4f)\x20->\x20@location(0)\x20vec4f\x20{\x0a\x20\x20\x20\x20\x20\x20\x20\x20let\x20uv\x20=\x20fragCoord.xy\x20/\x20imgSize;\x20//\x20vec2f(textureDimensions(inTexture,\x200));\x0a\x20\x20\x20\x20\x20\x20\x20\x20return\x20textureSample(inTexture,\x20inSampler,\x20uv);\x0a\x20\x20\x20\x20\x20\x20}\x0a\x20\x20\x20\x20\x20\x20",
-      })),
-      (this[_0x1b0946(0x1ab)] = this[_0x1b0946(0x1b0)][_0x1b0946(0x1a4)]({
-        label: "Ray\x20Tracer\x20output\x20size\x20buffer",
-        size: 0x8,
-        usage:
-          GPUBufferUsage[_0x1b0946(0x164)] | GPUBufferUsage[_0x1b0946(0x17d)],
-      })),
-      (this["_pipeline"] = this[_0x1b0946(0x1b0)][_0x1b0946(0x16b)]({
-        label: _0x1b0946(0x1a7),
-        layout: _0x1b0946(0x1d9),
-        vertex: {
-          module: this[_0x1b0946(0x1c8)],
-          entryPoint: _0x1b0946(0x248),
-        },
-        fragment: {
-          module: this["_shaderModule"],
-          entryPoint: _0x1b0946(0x1f6),
-          targets: [{ format: this[_0x1b0946(0x24d)] }],
-        },
-      })),
-      (this["_sampler"] = this["_device"][_0x1b0946(0x16a)]({
-        label: _0x1b0946(0x17e),
-        magFilter: _0x1b0946(0x1d7),
-        minFilter: "linear",
-      })),
-      this[_0x1b0946(0x20b)](),
-      window["addEventListener"](
-        "resize",
-        this[_0x1b0946(0x20b)][_0x1b0946(0x175)](this)
-      );
-  }
-  ["resizeCanvas"]() {
-    const _0x3b6d0a = _0x1c9c99,
-      _0x31323e = window[_0x3b6d0a(0x180)] || 0x1,
-      _0x1097c8 = window[_0x3b6d0a(0x250)] * _0x31323e,
-      _0xd0b6de = window[_0x3b6d0a(0x1c4)] * _0x31323e,
-      _0x3b56f7 = _0x1097c8 / _0xd0b6de,
-      _0x45747c = _0xd0b6de;
-    let _0x7a0742 = { width: _0x45747c * _0x3b56f7, height: _0x45747c };
-    (this[_0x3b6d0a(0x1e6)] = this[_0x3b6d0a(0x1b0)][_0x3b6d0a(0x1fc)]({
-      size: _0x7a0742,
-      format: this[_0x3b6d0a(0x24d)],
-      usage:
-        GPUTextureUsage["TEXTURE_BINDING"] | GPUTextureUsage[_0x3b6d0a(0x242)],
-    })),
-      this[_0x3b6d0a(0x204)] &&
-        ((this[_0x3b6d0a(0x204)][_0x3b6d0a(0x1ec)] =
-          this[_0x3b6d0a(0x1e6)][_0x3b6d0a(0x255)]),
-        (this[_0x3b6d0a(0x204)][_0x3b6d0a(0x1e7)] =
-          this[_0x3b6d0a(0x1e6)]["height"]),
-        this[_0x3b6d0a(0x204)]["updateGeometry"](),
-        this["_tracer"][_0x3b6d0a(0x1f4)](this[_0x3b6d0a(0x1e6)])),
-      (this[_0x3b6d0a(0x1b5)] = this[_0x3b6d0a(0x1b0)]["createBindGroup"]({
-        label: _0x3b6d0a(0x19b),
-        layout: this[_0x3b6d0a(0x20c)][_0x3b6d0a(0x195)](0x0),
-        entries: [
-          {
-            binding: 0x0,
-            resource: this["_offScreenTexture"][_0x3b6d0a(0x202)](),
-          },
-          { binding: 0x1, resource: this[_0x3b6d0a(0x18c)] },
-          { binding: 0x2, resource: { buffer: this[_0x3b6d0a(0x1ab)] } },
-        ],
-      })),
-      super["resizeCanvas"](),
-      this[_0x3b6d0a(0x1b0)]["queue"][_0x3b6d0a(0x21e)](
-        this[_0x3b6d0a(0x1ab)],
-        0x0,
-        new Float32Array([_0x1097c8, _0xd0b6de])
-      );
-  }
-  async [_0x1c9c99(0x1b4)](_0x301455) {
-    const _0x6ea460 = _0x1c9c99;
-    await _0x301455[_0x6ea460(0x1ae)](),
-      (_0x301455[_0x6ea460(0x1ec)] =
-        this["_offScreenTexture"][_0x6ea460(0x255)]),
-      (_0x301455[_0x6ea460(0x1e7)] = this[_0x6ea460(0x1e6)][_0x6ea460(0x1a8)]),
-      _0x301455[_0x6ea460(0x236)](),
-      (this[_0x6ea460(0x204)] = _0x301455),
-      this[_0x6ea460(0x204)]["createBindGroup"](this[_0x6ea460(0x1e6)]);
-  }
-  [_0x1c9c99(0x1d6)]() {
-    const _0x3a0894 = _0x1c9c99;
-    if (this[_0x3a0894(0x204)]) {
-      let _0x43776b = this[_0x3a0894(0x1b0)][_0x3a0894(0x1fa)]();
-      const _0x27c770 = _0x43776b["beginComputePass"]();
-      this[_0x3a0894(0x204)][_0x3a0894(0x1a1)](_0x27c770),
-        _0x27c770[_0x3a0894(0x1b7)](),
-        this["_device"][_0x3a0894(0x23b)]["submit"]([
-          _0x43776b[_0x3a0894(0x19d)](),
-        ]);
+  async init() {
+    if (!navigator.gpu) {
+      throw Error("WebGPU is not supported in this browser.");
     }
-    let _0x16fdf0 = this[_0x3a0894(0x1b0)][_0x3a0894(0x1fa)]();
-    const _0x26a2df = _0x16fdf0[_0x3a0894(0x210)]({
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) {
+      throw Error("Couldn't request WebGPU adapter.");
+    }
+    this._device = await adapter.requestDevice();
+    this._context = this._canvas.getContext("webgpu");
+    this._canvasFormat = "rgba8unorm";
+    this._context.configure({
+      device: this._device,
+      format: this._canvasFormat,
+    });
+    this._shaderModule = this._device.createShaderModule({
+      label: "Ray Tracer Shader",
+      code: `
+      @vertex
+      fn vertexMain(@builtin(vertex_index) vIdx: u32) -> @builtin(position) vec4f {
+        var pos = array<vec2f, 6>(
+          vec2f(-1, -1), vec2f(1, -1), vec2f(-1, 1),
+          vec2f(-1, 1), vec2f(1, -1), vec2f(1, 1)
+        );
+        return vec4f(pos[vIdx], 0, 1);
+      }
+      
+      @group(0) @binding(0) var inTexture: texture_2d<f32>;
+      @group(0) @binding(1) var inSampler: sampler;
+      @group(0) @binding(2) var<uniform> imgSize: vec2f;
+      
+      @fragment
+      fn fragmentMain(@builtin(position) fragCoord: vec4f) -> @location(0) vec4f {
+        let uv = fragCoord.xy / imgSize; // vec2f(textureDimensions(inTexture, 0));
+        return textureSample(inTexture, inSampler, uv);
+      }
+      `,
+    });
+    this._outputSizeBuffer = this._device.createBuffer({
+      label: "Ray Tracer output size buffer",
+      size: 8,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    this._pipeline = this._device.createRenderPipeline({
+      label: "Ray Tracer Pipeline",
+      layout: "auto",
+      vertex: { module: this._shaderModule, entryPoint: "vertexMain" },
+      fragment: {
+        module: this._shaderModule,
+        entryPoint: "fragmentMain",
+        targets: [{ format: this._canvasFormat }],
+      },
+    });
+    this._sampler = this._device.createSampler({
+      label: "Ray Tracer Sampler",
+      magFilter: "linear",
+      minFilter: "linear",
+    });
+    this.resizeCanvas();
+    window.addEventListener("resize", this.resizeCanvas.bind(this));
+  }
+  resizeCanvas() {
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    const width = window.innerWidth * devicePixelRatio;
+    const height = window.innerHeight * devicePixelRatio;
+    const ratio = width / height;
+    const tgtHeight = height;
+    let imgSize = { width: tgtHeight * ratio, height: tgtHeight };
+    this._offScreenTexture = this._device.createTexture({
+      size: imgSize,
+      format: this._canvasFormat,
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.STORAGE_BINDING,
+    });
+    if (this._tracer) {
+      this._tracer._imgWidth = this._offScreenTexture.width;
+      this._tracer._imgHeight = this._offScreenTexture.height;
+      this._tracer.updateGeometry();
+      this._tracer.createBindGroup(this._offScreenTexture);
+    }
+    this._bindGroup = this._device.createBindGroup({
+      label: "Ray Tracer Renderer Bind Group",
+      layout: this._pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: this._offScreenTexture.createView() },
+        { binding: 1, resource: this._sampler },
+        { binding: 2, resource: { buffer: this._outputSizeBuffer } },
+      ],
+    });
+    super.resizeCanvas();
+    this._device.queue.writeBuffer(
+      this._outputSizeBuffer,
+      0,
+      new Float32Array([width, height])
+    );
+  }
+  async setTracerObject(obj) {
+    await obj.init();
+    obj._imgWidth = this._offScreenTexture.width;
+    obj._imgHeight = this._offScreenTexture.height;
+    obj.updateGeometry();
+    this._tracer = obj;
+    this._tracer.createBindGroup(this._offScreenTexture);
+  }
+  render() {
+    if (this._tracer) {
+      let encoder = this._device.createCommandEncoder();
+      const computePass = encoder.beginComputePass();
+      this._tracer.compute(computePass);
+      computePass.end();
+      this._device.queue.submit([encoder.finish()]);
+    }
+    let encoder = this._device.createCommandEncoder();
+    const pass = encoder.beginRenderPass({
       colorAttachments: [
         {
-          view: this[_0x3a0894(0x1cf)]
-            ["getCurrentTexture"]()
-            [_0x3a0894(0x202)](),
-          clearValue: this[_0x3a0894(0x201)],
-          loadOp: _0x3a0894(0x1b9),
-          storeOp: _0x3a0894(0x1ad),
+          view: this._context.getCurrentTexture().createView(),
+          clearValue: this._clearColor,
+          loadOp: "clear",
+          storeOp: "store",
         },
       ],
     });
-    _0x26a2df[_0x3a0894(0x17a)](this[_0x3a0894(0x20c)]),
-      _0x26a2df[_0x3a0894(0x215)](0x0, this[_0x3a0894(0x1b5)]),
-      _0x26a2df[_0x3a0894(0x15f)](0x6),
-      _0x26a2df[_0x3a0894(0x1b7)](),
-      this[_0x3a0894(0x1b0)][_0x3a0894(0x23b)][_0x3a0894(0x1ff)]([
-        _0x16fdf0[_0x3a0894(0x19d)](),
-      ]);
+    pass.setPipeline(this._pipeline);
+    pass.setBindGroup(0, this._bindGroup);
+    pass.draw(6);
+    pass.end();
+    this._device.queue.submit([encoder.finish()]);
   }
 }
 class StandardTextObject {
-  constructor(_0x4b169d, _0x48a731 = 0x5, _0x3ccd20 = _0x1c9c99(0x247)) {
-    const _0xb4c2eb = _0x1c9c99;
-    (this[_0xb4c2eb(0x19c)] = _0x3ccd20),
-      (this[_0xb4c2eb(0x1c1)] = _0x48a731),
-      (this[_0xb4c2eb(0x228)] = document[_0xb4c2eb(0x224)]("canvas")),
-      (this[_0xb4c2eb(0x239)] = this[_0xb4c2eb(0x228)][_0xb4c2eb(0x23f)]("2d")),
-      this[_0xb4c2eb(0x21a)](_0x4b169d),
-      this["updateText"](_0x4b169d),
-      (this[_0xb4c2eb(0x228)]["style"][_0xb4c2eb(0x177)] = _0xb4c2eb(0x193)),
-      (this[_0xb4c2eb(0x228)][_0xb4c2eb(0x1d0)][_0xb4c2eb(0x172)] =
-        _0xb4c2eb(0x1fe)),
-      (this[_0xb4c2eb(0x228)][_0xb4c2eb(0x1d0)][_0xb4c2eb(0x18b)] =
-        _0xb4c2eb(0x1fe)),
-      (this[_0xb4c2eb(0x228)]["style"][_0xb4c2eb(0x1b2)] = _0xb4c2eb(0x1be)),
-      document[_0xb4c2eb(0x1e0)]["appendChild"](this["_textCanvas"]);
+  constructor(inputText, spacing = 5, textFont = "18px Arial") {
+    this._textFont = textFont;
+    this._lineSpacing = spacing;
+    this._textCanvas = document.createElement("canvas");
+    this._textContext = this._textCanvas.getContext("2d");
+    this.updateTextRegion(inputText);
+    this.updateText(inputText);
+    this._textCanvas.style.position = "absolute";
+    this._textCanvas.style.top = "10px";
+    this._textCanvas.style.left = "10px";
+    this._textCanvas.style.border = "1px solid red";
+    document.body.appendChild(this._textCanvas);
   }
-  [_0x1c9c99(0x22b)]() {
-    const _0x374b6f = _0x1c9c99;
-    this[_0x374b6f(0x228)]["hidden"] =
-      !this[_0x374b6f(0x228)][_0x374b6f(0x1c3)];
+  toggleVisibility() {
+    this._textCanvas.hidden = !this._textCanvas.hidden;
   }
-  [_0x1c9c99(0x21a)](_0x3faa5f) {
-    const _0x33eef6 = _0x1c9c99;
-    (this[_0x33eef6(0x239)][_0x33eef6(0x183)] = this[_0x33eef6(0x19c)]),
-      (this[_0x33eef6(0x176)] = _0x3faa5f[_0x33eef6(0x235)]("\x0a")),
-      (this[_0x33eef6(0x17b)] = Math["max"](
-        ...this[_0x33eef6(0x176)]["map"](
-          (_0xeea2de) =>
-            this["_textContext"]["measureText"](_0xeea2de)[_0x33eef6(0x255)]
-        )
-      ));
-    const _0x31275b = this[_0x33eef6(0x19c)][_0x33eef6(0x1eb)](/(\d+)px/);
-    _0x31275b
-      ? (this[_0x33eef6(0x24a)] = parseInt(_0x31275b[0x1], 0xa))
-      : ((this[_0x33eef6(0x24a)] = 0x12),
-        (this["_textFont"] = _0x33eef6(0x247))),
-      (this["_height"] =
-        this[_0x33eef6(0x176)][_0x33eef6(0x243)] *
-        (this[_0x33eef6(0x24a)] + this[_0x33eef6(0x1c1)])),
-      (this[_0x33eef6(0x24b)] = 0x5),
-      (this["_paddingtop"] = 0x3),
-      (this["_canvasWidth"] = Math[_0x33eef6(0x1bc)](
-        this["_width"] + this[_0x33eef6(0x24b)] * 0x2
-      )),
-      (this[_0x33eef6(0x17f)] = Math[_0x33eef6(0x1bc)](
-        this[_0x33eef6(0x1a6)] + this[_0x33eef6(0x1f9)]
-      )),
-      (this[_0x33eef6(0x228)]["width"] = this[_0x33eef6(0x1a0)]),
-      (this[_0x33eef6(0x228)][_0x33eef6(0x1a8)] = this["_canvasHeight"]),
-      (this[_0x33eef6(0x239)][_0x33eef6(0x183)] = this[_0x33eef6(0x19c)]),
-      (this[_0x33eef6(0x239)]["textBaseline"] = _0x33eef6(0x172));
+  updateTextRegion(newText) {
+    this._textContext.font = this._textFont;
+    this._lines = newText.split("\n");
+    this._width = Math.max(
+      ...this._lines.map((line) => this._textContext.measureText(line).width)
+    );
+    const match = this._textFont.match(/(\d+)px/);
+    if (match) {
+      this._fontSize = parseInt(match[1], 10);
+    } else {
+      this._fontSize = 18;
+      this._textFont = "18px Arial";
+    }
+    this._height = this._lines.length * (this._fontSize + this._lineSpacing);
+    this._paddingx = 5;
+    this._paddingtop = 3;
+    this._canvasWidth = Math.ceil(this._width + this._paddingx * 2);
+    this._canvasHeight = Math.ceil(this._height + this._paddingtop);
+    this._textCanvas.width = this._canvasWidth;
+    this._textCanvas.height = this._canvasHeight;
+    this._textContext.font = this._textFont;
+    this._textContext.textBaseline = "top";
   }
-  [_0x1c9c99(0x200)](_0x54a99) {
-    const _0x59f77c = _0x1c9c99;
-    (this["_lines"] = _0x54a99[_0x59f77c(0x235)]("\x0a")),
-      (this[_0x59f77c(0x239)][_0x59f77c(0x227)] = _0x59f77c(0x218)),
-      this["_textContext"][_0x59f77c(0x1ef)](
-        0x0,
-        0x0,
-        this[_0x59f77c(0x1a0)],
-        this[_0x59f77c(0x17f)]
-      ),
-      this[_0x59f77c(0x239)][_0x59f77c(0x1da)](
-        0x0,
-        0x0,
-        this[_0x59f77c(0x1a0)],
-        this[_0x59f77c(0x17f)]
-      ),
-      (this["_textContext"][_0x59f77c(0x227)] = "white"),
-      this[_0x59f77c(0x176)][_0x59f77c(0x188)]((_0x11ad8c, _0x4529ed) => {
-        const _0x54e551 = _0x59f77c,
-          _0x41c7c2 = this["_paddingx"],
-          _0x534ab3 =
-            this[_0x54e551(0x1f9)] +
-            _0x4529ed * (this["_fontSize"] + this[_0x54e551(0x1c1)]);
-        this[_0x54e551(0x239)]["fillText"](_0x11ad8c, _0x41c7c2, _0x534ab3);
-      });
+  updateText(newText) {
+    this._lines = newText.split("\n");
+    this._textContext.fillStyle = "rgba(1, 1, 1, 0.5)";
+    this._textContext.clearRect(0, 0, this._canvasWidth, this._canvasHeight);
+    this._textContext.fillRect(0, 0, this._canvasWidth, this._canvasHeight);
+    this._textContext.fillStyle = "white";
+    this._lines.forEach((line, idx) => {
+      const x = this._paddingx;
+      const y = this._paddingtop + idx * (this._fontSize + this._lineSpacing);
+      this._textContext.fillText(line, x, y);
+    });
   }
 }
 class SceneObject {
-  static [_0x1c9c99(0x179)] = 0x0;
-  constructor(_0x4c3b5b, _0x3a559c) {
-    const _0x41434d = _0x1c9c99;
-    if (this["constructor"] == SceneObject) throw new Error(_0x41434d(0x1bb));
-    (this[_0x41434d(0x1b0)] = _0x4c3b5b),
-      (this[_0x41434d(0x24d)] = _0x3a559c),
-      (SceneObject[_0x41434d(0x179)] += 0x1);
+  static _objectCnt = 0;
+  constructor(device, canvasFormat) {
+    if (this.constructor == SceneObject) {
+      throw new Error("Abstract classes can't be instantiated.");
+    }
+    this._device = device;
+    this._canvasFormat = canvasFormat;
+    SceneObject._objectCnt += 1;
   }
-  [_0x1c9c99(0x217)]() {
-    const _0x40ff42 = _0x1c9c99;
-    return (
-      this["constructor"][_0x40ff42(0x223)] +
-      "\x20" +
-      SceneObject[_0x40ff42(0x179)][_0x40ff42(0x211)]()
-    );
+  getName() {
+    return this.constructor.name + " " + SceneObject._objectCnt.toString();
   }
-  async [_0x1c9c99(0x1ae)]() {
-    const _0x2c9177 = _0x1c9c99;
-    await this["createGeometry"](),
-      await this[_0x2c9177(0x252)](),
-      await this["createRenderPipeline"](),
-      await this[_0x2c9177(0x1b1)]();
+  async init() {
+    await this.createGeometry();
+    await this.createShaders();
+    await this.createRenderPipeline();
+    await this.createComputePipeline();
   }
-  async [_0x1c9c99(0x184)]() {
-    const _0x4727a9 = _0x1c9c99;
-    throw new Error(_0x4727a9(0x1fb));
+  async createGeometry() {
+    throw new Error("Method 'createGeometry()' must be implemented.");
   }
-  [_0x1c9c99(0x236)]() {}
-  [_0x1c9c99(0x160)](_0x1b1d55) {
-    return new Promise((_0x4220e3, _0x2db54a) => {
-      const _0xefa872 = _0x28a5,
-        _0x2ce7c8 = new XMLHttpRequest();
-      _0x2ce7c8[_0xefa872(0x1c0)](_0xefa872(0x171), _0x1b1d55),
-        _0x2ce7c8["setRequestHeader"](_0xefa872(0x1e5), _0xefa872(0x20d)),
-        (_0x2ce7c8[_0xefa872(0x230)] = function () {
-          const _0x36f292 = _0xefa872;
-          _0x2ce7c8[_0x36f292(0x1d8)] === XMLHttpRequest[_0x36f292(0x22e)] &&
-          _0x2ce7c8[_0x36f292(0x1fd)] === 0xc8
-            ? _0x4220e3(_0x2ce7c8[_0x36f292(0x199)])
-            : _0x2db54a({
-                status: _0x2ce7c8[_0x36f292(0x1fd)],
-                statusText: _0x2ce7c8["statusText"],
-              });
-        }),
-        (_0x2ce7c8[_0xefa872(0x24f)] = function () {
-          const _0x3cb198 = _0xefa872;
-          _0x2db54a({
-            status: _0x2ce7c8[_0x3cb198(0x1fd)],
-            statusText: _0x2ce7c8[_0x3cb198(0x189)],
-          });
-        }),
-        _0x2ce7c8[_0xefa872(0x23a)]();
+  updateGeometry() {}
+  loadShader(filename) {
+    return new Promise((resolve, reject) => {
+      const xhttp = new XMLHttpRequest();
+      xhttp.open("GET", filename);
+      xhttp.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+      xhttp.onload = function () {
+        if (xhttp.readyState === XMLHttpRequest.DONE && xhttp.status === 200) {
+          resolve(xhttp.responseText);
+        } else {
+          reject({ status: xhttp.status, statusText: xhttp.statusText });
+        }
+      };
+      xhttp.onerror = function () {
+        reject({ status: xhttp.status, statusText: xhttp.statusText });
+      };
+      xhttp.send();
     });
   }
-  async [_0x1c9c99(0x252)]() {
-    const _0x426731 = _0x1c9c99;
-    throw new Error(_0x426731(0x222));
+  async createShaders() {
+    throw new Error("Method 'createShaders()' must be implemented.");
   }
-  async [_0x1c9c99(0x16b)]() {
-    const _0x579f1b = _0x1c9c99;
-    throw new Error(_0x579f1b(0x205));
+  async createRenderPipeline() {
+    throw new Error("Method 'createRenderPipeline()' must be implemented.");
   }
-  [_0x1c9c99(0x1d6)](_0x2f4b48) {
-    const _0x25de78 = _0x1c9c99;
-    throw new Error(_0x25de78(0x1e9));
+  render(pass) {
+    throw new Error("Method 'render(pass)' must be implemented.");
   }
-  async [_0x1c9c99(0x1b1)]() {
-    const _0x5b17b7 = _0x1c9c99;
-    throw new Error(_0x5b17b7(0x206));
+  async createComputePipeline() {
+    throw new Error("Method 'createComputePipeline()' must be implemented.");
   }
-  [_0x1c9c99(0x1a1)](_0x3f227c) {
-    throw new Error(
-      "Method\x20\x27compute(pass)\x27\x20must\x20be\x20implemented."
-    );
+  compute(pass) {
+    throw new Error("Method 'compute(pass)' must be implemented.");
   }
-}
-function _0x4136() {
-  const _0x10f278 = [
-    "setPipeline",
-    "_width",
-    "sqrt",
-    "COPY_DST",
-    "Ray\x20Tracer\x20Sampler",
-    "_canvasHeight",
-    "devicePixelRatio",
-    "_scales",
-    "createTranslator",
-    "font",
-    "createGeometry",
-    "byteLength",
-    "geometricProduct",
-    "center",
-    "forEach",
-    "statusText",
-    "log",
-    "left",
-    "_sampler",
-    "_down",
-    "Ray\x20Trace\x20Box\x20Projective\x20Pipeline\x20",
-    "extractRotor",
-    "motorNorm",
-    "computeProjectiveMain",
-    "addEventListener",
-    "absolute",
-    "20xIFBRJ",
-    "getBindGroupLayout",
-    "\x20\x20A\x20/\x20D\x20-\x20Left\x20/\x20Right\x0a",
-    "rotateZ",
-    "getElementById",
-    "responseText",
-    "beginComputePass",
-    "Ray\x20Tracer\x20Renderer\x20Bind\x20Group",
-    "_textFont",
-    "finish",
-    "Controls:\x0a",
-    "99bcFeBj",
-    "_canvasWidth",
-    "compute",
-    "applyMotorToDir",
-    "defaultPrevented",
-    "createBuffer",
-    "1527444fvDeym",
-    "_height",
-    "Ray\x20Tracer\x20Pipeline",
-    "height",
-    "_top",
-    "dispatchWorkgroups",
-    "_outputSizeBuffer",
-    "computeMain",
-    "store",
-    "init",
-    "_canvas",
-    "_device",
-    "createComputePipeline",
-    "border",
-    "resetPose",
-    "setTracerObject",
-    "_bindGroup",
-    "updateSize",
-    "end",
-    "2JMkwVD",
-    "clear",
-    "createBindGroupLayout",
-    "Abstract\x20classes\x20can\x27t\x20be\x20instantiated.",
-    "ceil",
-    "280465FQzxNZ",
-    "1px\x20solid\x20red",
-    "map",
-    "open",
-    "_lineSpacing",
-    "14QnCHsQ",
-    "hidden",
-    "innerHeight",
-    "createPoint",
-    "_boxBuffer",
-    "_bindGroupLayout",
-    "_shaderModule",
-    "_wgWidth",
-    "renderToSelectedView",
-    "rotateX",
-    "</br>",
-    "Movement:\x0a",
-    "_right",
-    "_context",
-    "style",
-    "createPlaneFromPoints",
-    "_computeProjectivePipeline",
-    "createPipelineLayout",
-    "renderCanvas",
-    "moveY",
-    "render",
-    "linear",
-    "readyState",
-    "auto",
-    "fillRect",
-    "now",
-    "Ray\x20Tracer\x20Shader",
-    "extractPoint",
-    "1802586xLQrAW",
-    "moveX",
-    "body",
-    "fps:\x20",
-    "extractTranslator",
-    "_pose",
-    "cos",
-    "Cache-Control",
-    "_offScreenTexture",
-    "_imgHeight",
-    "COMPUTE",
-    "Method\x20\x27render(pass)\x27\x20must\x20be\x20implemented.",
-    "_front",
-    "match",
-    "_imgWidth",
-    "createDir",
-    "\x20\x20Q\x20/\x20E\x20-\x20Down\x20/\x20Up\x0a",
-    "clearRect",
-    "configure",
-    "Rotation:\x0a",
-    "createShaderModule",
-    "\x20\x20U\x20/\x20O\x20-\x20Roll\x20CW\x20/\x20CCW\x0a",
-    "createBindGroup",
-    "sin",
-    "fragmentMain",
-    "\x20\x20W\x20/\x20S\x20-\x20Forward\x20/\x20Back\x0a",
-    "_resolutions",
-    "_paddingtop",
-    "createCommandEncoder",
-    "Method\x20\x27createGeometry()\x27\x20must\x20be\x20implemented.",
-    "createTexture",
-    "status",
-    "10px",
-    "submit",
-    "updateText",
-    "_clearColor",
-    "createView",
-    "Ray\x20Trace\x20Box\x20Orthogonal\x20Pipeline\x20",
-    "_tracer",
-    "Method\x20\x27createRenderPipeline()\x27\x20must\x20be\x20implemented.",
-    "Method\x20\x27createComputePipeline()\x27\x20must\x20be\x20implemented.",
-    "push",
-    "innerHTML",
-    "requestAdapter",
-    "_cameraBuffer",
-    "resizeCanvas",
-    "_pipeline",
-    "no-cache,\x20no-store,\x20max-age=0",
-    "355872VzBHZy",
-    "computeOrthogonalMain",
-    "beginRenderPass",
-    "toString",
-    "createPlane",
-    "isInside",
-    "\x20\x20J\x20/\x20K\x20-\x20Pitch\x20Down\x20/\x20Up\x0a",
-    "setBindGroup",
-    "875106PSiWIu",
-    "getName",
-    "rgba(1,\x201,\x201,\x200.5)",
-    "Ray\x20Trace\x20Box\x20Pipeline\x20Layout",
-    "updateTextRegion",
-    "gpu",
-    "Ray\x20Trace\x20Box\x20Layout\x20",
-    "_left",
-    "writeBuffer",
-    "updateBoxPose",
-    "updatePose",
-    "moveZ",
-    "Method\x20\x27createShaders()\x27\x20must\x20be\x20implemented.",
-    "name",
-    "createElement",
-    "Ray\x20Tracing\x20Bind\x20Group",
-    "_focal",
-    "fillStyle",
-    "_textCanvas",
-    "\x20\x20P\x20-\x20Toggle\x20(Orthogonal/Projective)",
-    "_pipelineLayout",
-    "toggleVisibility",
-    "normalizeMotor",
-    "updateCameraPose",
-    "DONE",
-    "_camera",
-    "onload",
-    "4347800kFqmEM",
-    "WebGPU\x20is\x20not\x20supported\x20in\x20this\x20browser.",
-    "preventDefault",
-    "_isProjective",
-    "split",
-    "updateGeometry",
-    "_showTexture",
-    "createLine",
-    "_textContext",
-    "send",
-    "queue",
-    "2835970ctsNUA",
-    "webgpu",
-    "_box",
-    "getContext",
-    "\x20\x20H\x20/\x20L\x20-\x20Yaw\x20Left\x20/\x20Right\x0a",
-    "_objects",
-    "STORAGE_BINDING",
-    "length",
-    "Couldn\x27t\x20request\x20WebGPU\x20adapter.",
-    "applyMotor",
-    "reverse",
-    "18px\x20Arial",
-    "vertexMain",
-    "requestDevice",
-    "_fontSize",
-    "_paddingx",
-    "linePlaneIntersection",
-    "_canvasFormat",
-    "abs",
-    "onerror",
-    "innerWidth",
-    "rotateY",
-    "createShaders",
-    "Ray\x20Trace\x20Box\x20Bind\x20Group",
-    "keydown",
-    "width",
-    "draw",
-    "loadShader",
-    "appendChild",
-    "_back",
-    "catch",
-    "UNIFORM",
-    "createRotor",
-    "reduce",
-    "applyMotorToPoint",
-    "\x20Shader\x20",
-    "message",
-    "createSampler",
-    "createRenderPipeline",
-    "getCurrentTexture",
-    "remove",
-    "Camera\x20Mode:\x0a",
-    "updateCameraFocal",
-    "./optimized_tracenothing.wgsl",
-    "GET",
-    "top",
-    "_wgHeight",
-    "_computePipeline",
-    "bind",
-    "_lines",
-    "position",
-    "fill",
-    "_objectCnt",
-  ];
-  _0x4136 = function () {
-    return _0x10f278;
-  };
-  return _0x4136();
-}
-function _0x28a5(_0x4bec19, _0x41efd8) {
-  const _0x4136c5 = _0x4136();
-  return (
-    (_0x28a5 = function (_0x28a5a6, _0x47d805) {
-      _0x28a5a6 = _0x28a5a6 - 0x15f;
-      let _0x3890c6 = _0x4136c5[_0x28a5a6];
-      return _0x3890c6;
-    }),
-    _0x28a5(_0x4bec19, _0x41efd8)
-  );
 }
 class RayTracingObject extends SceneObject {
-  async [_0x1c9c99(0x184)]() {}
-  async [_0x1c9c99(0x252)]() {
-    const _0xb9f3b3 = _0x1c9c99;
-    let _0x2ab7c8 = await this[_0xb9f3b3(0x160)](_0xb9f3b3(0x170));
-    this[_0xb9f3b3(0x1c8)] = this["_device"]["createShaderModule"]({
-      label: _0xb9f3b3(0x168) + this["getName"](),
-      code: _0x2ab7c8,
+  async createGeometry() {}
+  async createShaders() {
+    let shaderCode = await this.loadShader("./optimized_tracenothing.wgsl");
+    this._shaderModule = this._device.createShaderModule({
+      label: " Shader " + this.getName(),
+      code: shaderCode,
     });
   }
-  ["updateGeometry"]() {}
-  async [_0x1c9c99(0x16b)]() {}
-  [_0x1c9c99(0x1d6)](_0x451572) {}
-  async ["createComputePipeline"]() {
-    const _0x119afb = _0x1c9c99;
-    this["_computePipeline"] = this[_0x119afb(0x1b0)][_0x119afb(0x1b1)]({
-      label: "Ray\x20Tracing\x20Pipeline\x20" + this["getName"](),
-      layout: _0x119afb(0x1d9),
-      compute: { module: this[_0x119afb(0x1c8)], entryPoint: _0x119afb(0x1ac) },
+  updateGeometry() {}
+  async createRenderPipeline() {}
+  render(pass) {}
+  async createComputePipeline() {
+    this._computePipeline = this._device.createComputePipeline({
+      label: "Ray Tracing Pipeline " + this.getName(),
+      layout: "auto",
+      compute: { module: this._shaderModule, entryPoint: "computeMain" },
     });
   }
-  [_0x1c9c99(0x1f4)](_0x11802d) {
-    const _0xb92244 = _0x1c9c99;
-    (this["_bindGroup"] = this[_0xb92244(0x1b0)][_0xb92244(0x1f4)]({
-      label: _0xb92244(0x225),
-      layout: this["_computePipeline"][_0xb92244(0x195)](0x0),
-      entries: [{ binding: 0x0, resource: _0x11802d[_0xb92244(0x202)]() }],
-    })),
-      (this[_0xb92244(0x1c9)] = Math[_0xb92244(0x1bc)](
-        _0x11802d[_0xb92244(0x255)]
-      )),
-      (this[_0xb92244(0x173)] = Math[_0xb92244(0x1bc)](
-        _0x11802d[_0xb92244(0x1a8)]
-      ));
+  createBindGroup(outTexture) {
+    this._bindGroup = this._device.createBindGroup({
+      label: "Ray Tracing Bind Group",
+      layout: this._computePipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: outTexture.createView() }],
+    });
+    this._wgWidth = Math.ceil(outTexture.width);
+    this._wgHeight = Math.ceil(outTexture.height);
   }
-  [_0x1c9c99(0x1a1)](_0x4a5fbe) {
-    const _0x106b60 = _0x1c9c99;
-    _0x4a5fbe[_0x106b60(0x17a)](this["_computePipeline"]),
-      _0x4a5fbe["setBindGroup"](0x0, this[_0x106b60(0x1b5)]),
-      _0x4a5fbe[_0x106b60(0x1aa)](
-        Math["ceil"](this[_0x106b60(0x1c9)] / 0x10),
-        Math["ceil"](this[_0x106b60(0x173)] / 0x10)
-      );
+  compute(pass) {
+    pass.setPipeline(this._computePipeline);
+    pass.setBindGroup(0, this._bindGroup);
+    pass.dispatchWorkgroups(
+      Math.ceil(this._wgWidth / 16),
+      Math.ceil(this._wgHeight / 16)
+    );
+  }
+}
+class PGA3D {
+  static geometricProduct(a, b) {
+    return [
+      a[0] * b[0] -
+        a[1] * b[1] -
+        a[2] * b[2] -
+        a[3] * b[3] -
+        a[7] * b[7] +
+        a[11] * b[11] +
+        a[12] * b[12] +
+        a[13] * b[13],
+      a[0] * b[1] +
+        a[1] * b[0] -
+        a[2] * b[3] +
+        a[3] * b[2] +
+        a[7] * b[13] +
+        a[11] * b[12] -
+        a[12] * b[11] +
+        a[13] * b[7],
+      a[0] * b[2] +
+        a[1] * b[3] +
+        a[2] * b[0] -
+        a[3] * b[1] -
+        a[7] * b[12] +
+        a[11] * b[13] -
+        a[12] * b[7] -
+        a[13] * b[11],
+      a[0] * b[3] -
+        a[1] * b[2] +
+        a[2] * b[1] +
+        a[3] * b[0] +
+        a[7] * b[11] +
+        a[11] * b[7] +
+        a[12] * b[13] -
+        a[13] * b[12],
+      a[0] * b[4] +
+        a[1] * b[5] +
+        a[2] * b[6] -
+        a[3] * b[15] +
+        a[4] * b[0] -
+        a[5] * b[1] -
+        a[6] * b[2] +
+        a[7] * b[10] +
+        a[8] * b[12] +
+        a[9] * b[13] -
+        a[10] * b[7] -
+        a[11] * b[14] +
+        a[12] * b[8] +
+        a[13] * b[9] +
+        a[14] * b[11] -
+        a[15] * b[3],
+      a[0] * b[5] -
+        a[1] * b[4] +
+        a[2] * b[15] +
+        a[3] * b[6] +
+        a[4] * b[1] +
+        a[5] * b[0] -
+        a[6] * b[3] -
+        a[7] * b[9] -
+        a[8] * b[11] +
+        a[9] * b[7] +
+        a[10] * b[12] -
+        a[11] * b[8] -
+        a[12] * b[14] +
+        a[13] * b[10] +
+        a[14] * b[12] +
+        a[15] * b[2],
+      a[0] * b[6] -
+        a[1] * b[15] -
+        a[2] * b[4] -
+        a[3] * b[5] +
+        a[4] * b[2] +
+        a[5] * b[3] +
+        a[6] * b[0] +
+        a[7] * b[8] -
+        a[8] * b[7] -
+        a[9] * b[11] -
+        a[10] * b[12] -
+        a[11] * b[9] -
+        a[12] * b[10] -
+        a[13] * b[14] +
+        a[14] * b[13] -
+        a[15] * b[1],
+      a[0] * b[7] +
+        a[1] * b[13] -
+        a[2] * b[12] +
+        a[3] * b[11] +
+        a[7] * b[0] +
+        a[11] * b[3] -
+        a[12] * b[2] +
+        a[13] * b[1],
+      a[0] * b[8] +
+        a[1] * b[14] -
+        a[2] * b[10] +
+        a[3] * b[9] +
+        a[4] * b[12] -
+        a[5] * b[11] +
+        a[6] * b[7] -
+        a[7] * b[6] +
+        a[8] * b[0] -
+        a[9] * b[3] +
+        a[10] * b[2] -
+        a[11] * b[5] +
+        a[12] * b[4] -
+        a[13] * b[15] +
+        a[14] * b[1] +
+        a[15] * b[13],
+      a[0] * b[9] +
+        a[1] * b[10] +
+        a[2] * b[14] -
+        a[3] * b[8] +
+        a[4] * b[13] -
+        a[5] * b[7] -
+        a[6] * b[11] +
+        a[7] * b[5] +
+        a[8] * b[3] +
+        a[9] * b[0] -
+        a[10] * b[1] -
+        a[11] * b[6] +
+        a[12] * b[15] +
+        a[13] * b[4] +
+        a[14] * b[2] -
+        a[15] * b[12],
+      a[0] * b[10] -
+        a[1] * b[9] +
+        a[2] * b[8] +
+        a[3] * b[14] +
+        a[4] * b[7] +
+        a[5] * b[13] -
+        a[6] * b[12] -
+        a[7] * b[4] -
+        a[8] * b[2] +
+        a[9] * b[1] +
+        a[10] * b[0] -
+        a[11] * b[15] -
+        a[12] * b[6] +
+        a[13] * b[5] +
+        a[14] * b[3] +
+        a[15] * b[11],
+      a[0] * b[11] +
+        a[1] * b[12] +
+        a[2] * b[13] -
+        a[3] * b[7] -
+        a[7] * b[3] +
+        a[11] * b[0] -
+        a[12] * b[1] -
+        a[13] * b[2],
+      a[0] * b[12] -
+        a[1] * b[11] +
+        a[2] * b[7] +
+        a[3] * b[13] +
+        a[7] * b[2] +
+        a[11] * b[1] +
+        a[12] * b[0] -
+        a[13] * b[3],
+      a[0] * b[13] -
+        a[1] * b[7] -
+        a[2] * b[11] -
+        a[3] * b[12] -
+        a[7] * b[1] +
+        a[11] * b[2] +
+        a[12] * b[3] +
+        a[13] * b[0],
+      a[0] * b[14] -
+        a[1] * b[8] -
+        a[2] * b[9] -
+        a[3] * b[10] +
+        a[4] * b[11] +
+        a[5] * b[12] +
+        a[6] * b[13] +
+        a[7] * b[15] -
+        a[8] * b[1] -
+        a[9] * b[2] -
+        a[10] * b[3] -
+        a[11] * b[4] -
+        a[12] * b[5] -
+        a[13] * b[6] +
+        a[14] * b[0] -
+        a[15] * b[7],
+      a[0] * b[15] +
+        a[1] * b[6] -
+        a[2] * b[5] +
+        a[3] * b[4] +
+        a[4] * b[3] -
+        a[5] * b[2] +
+        a[6] * b[1] -
+        a[7] * b[14] +
+        a[8] * b[13] -
+        a[9] * b[12] +
+        a[10] * b[11] -
+        a[11] * b[10] +
+        a[12] * b[9] -
+        a[13] * b[8] +
+        a[14] * b[7] +
+        a[15] * b[0],
+    ];
+  }
+  static reverse(a) {
+    return [
+      a[0],
+      -a[1],
+      -a[2],
+      -a[3],
+      -a[4],
+      -a[5],
+      -a[6],
+      -a[7],
+      -a[8],
+      -a[9],
+      -a[10],
+      a[11],
+      a[12],
+      a[13],
+      a[14],
+      a[15],
+    ];
+  }
+  static applyMotor(p, m) {
+    return PGA3D.geometricProduct(
+      m,
+      PGA3D.geometricProduct(p, PGA3D.reverse(m))
+    );
+  }
+  static motorNorm(m) {
+    return Math.sqrt(m.map((val) => val * val).reduce((s, val) => s + val, 0));
+  }
+  static createTranslator(dx, dy, dz) {
+    return [1, 0, 0, 0, -dx / 2, -dy / 2, -dz / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  }
+  static extractTranslator(m) {
+    return [1, 0, 0, 0, m[4], m[5], m[6], 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  }
+  static createRotor(angle, dx = 1, dy = 0, dz = 0, sx = 0, sy = 0, sz = 0) {
+    let c = Math.cos(angle / 2);
+    let s = Math.sin(angle / 2);
+    let L = PGA3D.createLine(sx, sy, sz, dx, dy, dz);
+    return [
+      c,
+      s * L[1],
+      s * L[2],
+      s * L[3],
+      s * L[4],
+      s * L[5],
+      s * L[6],
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ];
+  }
+  static extractRotor(m) {
+    return [m[0], m[1], m[2], m[3], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  }
+  static createDir(dx, dy, dz) {
+    return [0, dz, -dy, dx, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  }
+  static createLine(sx, sy, sz, dx, dy, dz) {
+    let n = PGA3D.createDir(dx, dy, dz);
+    let dir = PGA3D.normalizeMotor(n);
+    return [
+      0,
+      dir[1],
+      dir[2],
+      dir[3],
+      -(-dir[2] * sz - dir[1] * sy),
+      -(dir[1] * sx - dir[3] * sz),
+      -(dir[3] * sy + dir[2] * sx),
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ];
+  }
+  static createPoint(x, y, z) {
+    return [0, 0, 0, 0, 0, 0, 0, 1, -z, y, -x, 0, 0, 0, 0, 0];
+  }
+  static extractPoint(p) {
+    return [-p[10] / p[7], p[9] / p[7], -p[8] / p[7]];
+  }
+  static createPlane(nx, ny, nz, d) {
+    return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, nx, ny, nz, -d, 0];
+  }
+  static createPlaneFromPoints(p1, p2, p3) {
+    let nx =
+      p2[1] * p3[2] -
+      p3[1] * p2[2] -
+      (p1[1] * p3[2] - p3[1] * p1[2]) +
+      (p1[1] * p2[2] - p2[1] * p1[2]);
+    let ny =
+      p2[0] * p3[2] -
+      p3[0] * p2[2] -
+      (p1[0] * p3[2] - p3[0] * p1[2]) +
+      (p1[0] * p2[2] - p2[0] * p1[2]);
+    let nz =
+      p2[0] * p3[1] -
+      p3[0] * p2[1] -
+      (p1[0] * p3[1] - p3[0] * p1[1]) +
+      (p1[0] * p2[1] - p2[0] * p1[1]);
+    let d =
+      p1[0] * (p2[1] * p3[2] - p3[1] * p2[2]) -
+      p2[0] * (p1[1] * p3[2] - p3[1] * p1[2]) +
+      p3[0] * (p1[1] * p2[2] - p2[1] * p1[2]);
+    return PGA3D.createPlane(nx, -ny, nz, d);
+  }
+  static linePlaneIntersection(L, P) {
+    let new_p = PGA3D.geometricProduct(L, P);
+    let isParallel = Math.abs(new_p[7]) <= 0.00000001;
+    let inPlane =
+      isParallel &&
+      Math.abs(new_p[8]) <= 0.00000001 &&
+      Math.abs(new_p[9]) <= 0.00000001 &&
+      Math.abs(new_p[10]) <= 0.00000001;
+    return [PGA3D.extractPoint(new_p), !isParallel, inPlane];
+  }
+  static normalizeMotor(m) {
+    let mnorm = PGA3D.motorNorm(m);
+    if (mnorm == 0.0) {
+      return [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+    return m.map((val) => val / mnorm);
+  }
+  static applyMotorToPoint(p, m) {
+    let new_p = PGA3D.applyMotor(PGA3D.createPoint(p[0], p[1], p[2]), m);
+    return PGA3D.extractPoint(new_p);
+  }
+  static applyMotorToDir(d, m) {
+    let r = PGA3D.extractRotor(m);
+    let new_d = PGA3D.applyMotor(PGA3D.createPoint(d[0], d[1], d[2]), r);
+    return PGA3D.extractPoint(new_d);
+  }
+  static isInside(v0, v1, v2, p) {
+    let pga0 = PGA3D.createPoint(v0[0], v0[1], v0[2]);
+    let pga1 = PGA3D.createPoint(v1[0], v1[1], v1[2]);
+    let pga2 = PGA3D.createPoint(v2[0], v2[1], v2[2]);
+    let pgap = PGA3D.createPoint(p[0], p[1], p[2]);
+    let plane012 = PGA3D.createPlaneFromPoints(v0, v1, v2);
+    let planep12 = PGA3D.createPlaneFromPoints(p, v1, v2);
+    let plane0p2 = PGA3D.createPlaneFromPoints(v0, p, v2);
+    let plane01p = PGA3D.createPlaneFromPoints(v0, v1, p);
+    let area012 =
+      plane012[11] * plane012[11] +
+      plane012[12] * plane012[12] +
+      plane012[13] * plane012[13] +
+      plane012[14] * plane012[14];
+    let areap12 =
+      plane012[11] * planep12[11] +
+      plane012[12] * planep12[12] +
+      plane012[13] * planep12[13] +
+      plane012[14] * planep12[14];
+    let area0p2 =
+      plane012[11] * plane0p2[11] +
+      plane012[12] * plane0p2[12] +
+      plane012[13] * plane0p2[13] +
+      plane012[14] * plane0p2[14];
+    let area01p =
+      plane012[11] * plane01p[11] +
+      plane012[12] * plane01p[12] +
+      plane012[13] * plane01p[13] +
+      plane012[14] * plane01p[14];
+    let lambda1 = areap12 / area012;
+    let lambda2 = area0p2 / area012;
+    let lambda3 = area01p / area012;
+    return (
+      lambda1 >= 0 &&
+      lambda1 <= 1 &&
+      lambda2 >= 0 &&
+      lambda2 <= 1 &&
+      lambda3 >= 0 &&
+      lambda3 <= 1
+    );
   }
 }
 class UnitCube {
   constructor() {
-    const _0x1dafa0 = _0x1c9c99;
-    (this[_0x1dafa0(0x1e3)] = new Float32Array(Array(0x10)["fill"](0x0))),
-      (this[_0x1dafa0(0x1e3)][0x0] = 0x1),
-      (this[_0x1dafa0(0x181)] = new Float32Array(
-        Array(0x4)[_0x1dafa0(0x178)](0x1)
-      )),
-      (this[_0x1dafa0(0x1ea)] = new Float32Array([
-        -0.5, -0.5, 0.5, 0x1, 0.5, -0.5, 0.5, 0x1, 0.5, 0.5, 0.5, 0x1, -0.5,
-        0.5, 0.5, 0x1,
-      ])),
-      (this["_back"] = new Float32Array([
-        -0.5, -0.5, -0.5, 0x1, 0.5, -0.5, -0.5, 0x1, 0.5, 0.5, -0.5, 0x1, -0.5,
-        0.5, -0.5, 0x1,
-      ])),
-      (this["_left"] = new Float32Array([
-        -0.5, -0.5, -0.5, 0x1, -0.5, -0.5, 0.5, 0x1, -0.5, 0.5, 0.5, 0x1, -0.5,
-        0.5, -0.5, 0x1,
-      ])),
-      (this[_0x1dafa0(0x1ce)] = new Float32Array([
-        0.5, -0.5, -0.5, 0x1, 0.5, -0.5, 0.5, 0x1, 0.5, 0.5, 0.5, 0x1, 0.5, 0.5,
-        -0.5, 0x1,
-      ])),
-      (this[_0x1dafa0(0x1a9)] = new Float32Array([
-        -0.5, 0.5, -0.5, 0x1, 0.5, 0.5, -0.5, 0x1, 0.5, 0.5, 0.5, 0x1, -0.5,
-        0.5, 0.5, 0x1,
-      ])),
-      (this[_0x1dafa0(0x18d)] = new Float32Array([
-        -0.5, -0.5, -0.5, 0x1, 0.5, -0.5, -0.5, 0x1, 0.5, -0.5, 0.5, 0x1, -0.5,
-        -0.5, 0.5, 0x1,
-      ]));
+    this._pose = new Float32Array(Array(16).fill(0));
+    this._pose[0] = 1;
+    this._scales = new Float32Array(Array(4).fill(1));
+    this._front = new Float32Array([
+      -0.5, -0.5, 0.5, 1, 0.5, -0.5, 0.5, 1, 0.5, 0.5, 0.5, 1, -0.5, 0.5, 0.5,
+      1,
+    ]);
+    this._back = new Float32Array([
+      -0.5, -0.5, -0.5, 1, 0.5, -0.5, -0.5, 1, 0.5, 0.5, -0.5, 1, -0.5, 0.5,
+      -0.5, 1,
+    ]);
+    this._left = new Float32Array([
+      -0.5, -0.5, -0.5, 1, -0.5, -0.5, 0.5, 1, -0.5, 0.5, 0.5, 1, -0.5, 0.5,
+      -0.5, 1,
+    ]);
+    this._right = new Float32Array([
+      0.5, -0.5, -0.5, 1, 0.5, -0.5, 0.5, 1, 0.5, 0.5, 0.5, 1, 0.5, 0.5, -0.5,
+      1,
+    ]);
+    this._top = new Float32Array([
+      -0.5, 0.5, -0.5, 1, 0.5, 0.5, -0.5, 1, 0.5, 0.5, 0.5, 1, -0.5, 0.5, 0.5,
+      1,
+    ]);
+    this._down = new Float32Array([
+      -0.5, -0.5, -0.5, 1, 0.5, -0.5, -0.5, 1, 0.5, -0.5, 0.5, 1, -0.5, -0.5,
+      0.5, 1,
+    ]);
   }
-  [_0x1c9c99(0x220)](_0x561471) {
-    const _0xd52497 = _0x1c9c99;
-    for (let _0x4849e4 = 0x0; _0x4849e4 < 0x10; ++_0x4849e4)
-      this[_0xd52497(0x1e3)][_0x4849e4] = _0x561471[_0x4849e4];
+  updatePose(newPose) {
+    for (let i = 0; i < 16; ++i) this._pose[i] = newPose[i];
+  }
+  moveX(d) {
+    const translator = PGA3D.createTranslator(d, 0, 0);
+    const newpose = PGA3D.geometricProduct(translator, this._pose);
+    this.updatePose(newpose);
+  }
+  moveY(d) {
+    const translator = PGA3D.createTranslator(0, d, 0);
+    const newpose = PGA3D.geometricProduct(translator, this._pose);
+    this.updatePose(newpose);
+  }
+  moveZ(d) {
+    const translator = PGA3D.createTranslator(0, 0, d);
+    const newpose = PGA3D.geometricProduct(translator, this._pose);
+    this.updatePose(newpose);
+  }
+  rotateX(d) {
+    const rotor = PGA3D.createRotor(d, 1, 0, 0);
+    const newpose = PGA3D.geometricProduct(rotor, this._pose);
+    this.updatePose(newpose);
+  }
+  rotateY(d) {
+    const rotor = PGA3D.createRotor(d, 0, 1, 0);
+    const newpose = PGA3D.geometricProduct(rotor, this._pose);
+    this.updatePose(newpose);
+  }
+  rotateZ(d) {
+    const rotor = PGA3D.createRotor(d, 0, 0, 1);
+    const newpose = PGA3D.geometricProduct(rotor, this._pose);
+    this.updatePose(newpose);
   }
 }
 class RayTracingBoxObject extends RayTracingObject {
-  constructor(_0x4eb019, _0x37fa6f, _0x15081d, _0x3aea17 = !![]) {
-    const _0x528bd1 = _0x1c9c99;
-    super(_0x4eb019, _0x37fa6f),
-      (this[_0x528bd1(0x23e)] = new UnitCube()),
-      (this[_0x528bd1(0x22f)] = _0x15081d),
-      (this[_0x528bd1(0x237)] = _0x3aea17);
+  constructor(device, canvasFormat, camera, showTexture = true) {
+    super(device, canvasFormat);
+    this._box = new UnitCube();
+    this._camera = camera;
+    this._showTexture = showTexture;
   }
-  async ["createGeometry"]() {
-    const _0x5d1180 = _0x1c9c99;
-    (this[_0x5d1180(0x20a)] = this[_0x5d1180(0x1b0)][_0x5d1180(0x1a4)]({
-      label: "Camera\x20" + this[_0x5d1180(0x217)](),
+  async createGeometry() {
+    this._cameraBuffer = this._device.createBuffer({
+      label: "Camera " + this.getName(),
       size:
-        this[_0x5d1180(0x22f)][_0x5d1180(0x1e3)][_0x5d1180(0x185)] +
-        this[_0x5d1180(0x22f)][_0x5d1180(0x226)][_0x5d1180(0x185)] +
-        this[_0x5d1180(0x22f)]["_resolutions"][_0x5d1180(0x185)],
-      usage:
-        GPUBufferUsage[_0x5d1180(0x164)] | GPUBufferUsage[_0x5d1180(0x17d)],
-    })),
-      this[_0x5d1180(0x1b0)][_0x5d1180(0x23b)][_0x5d1180(0x21e)](
-        this[_0x5d1180(0x20a)],
-        0x0,
-        this[_0x5d1180(0x22f)][_0x5d1180(0x1e3)]
-      ),
-      this[_0x5d1180(0x1b0)][_0x5d1180(0x23b)][_0x5d1180(0x21e)](
-        this["_cameraBuffer"],
-        this["_camera"][_0x5d1180(0x1e3)][_0x5d1180(0x185)],
-        this[_0x5d1180(0x22f)][_0x5d1180(0x226)]
-      ),
-      this[_0x5d1180(0x1b0)]["queue"][_0x5d1180(0x21e)](
-        this[_0x5d1180(0x20a)],
-        this["_camera"][_0x5d1180(0x1e3)]["byteLength"] +
-          this[_0x5d1180(0x22f)][_0x5d1180(0x226)]["byteLength"],
-        this[_0x5d1180(0x22f)][_0x5d1180(0x1f8)]
-      ),
-      (this[_0x5d1180(0x1c6)] = this[_0x5d1180(0x1b0)]["createBuffer"]({
-        label: "Box\x20" + this[_0x5d1180(0x217)](),
-        size:
-          this["_box"]["_pose"][_0x5d1180(0x185)] +
-          this[_0x5d1180(0x23e)][_0x5d1180(0x181)][_0x5d1180(0x185)] +
-          this[_0x5d1180(0x23e)][_0x5d1180(0x1a9)][_0x5d1180(0x185)] * 0x6,
-        usage: GPUBufferUsage[_0x5d1180(0x164)] | GPUBufferUsage["COPY_DST"],
-      }));
-    let _0x1c8df5 = 0x0;
-    this[_0x5d1180(0x1b0)][_0x5d1180(0x23b)]["writeBuffer"](
-      this[_0x5d1180(0x1c6)],
-      _0x1c8df5,
-      this[_0x5d1180(0x23e)][_0x5d1180(0x1e3)]
-    ),
-      (_0x1c8df5 += this[_0x5d1180(0x23e)][_0x5d1180(0x1e3)][_0x5d1180(0x185)]),
-      this[_0x5d1180(0x1b0)][_0x5d1180(0x23b)][_0x5d1180(0x21e)](
-        this[_0x5d1180(0x1c6)],
-        _0x1c8df5,
-        this["_box"][_0x5d1180(0x181)]
-      ),
-      (_0x1c8df5 += this[_0x5d1180(0x23e)][_0x5d1180(0x181)][_0x5d1180(0x185)]),
-      this[_0x5d1180(0x1b0)][_0x5d1180(0x23b)][_0x5d1180(0x21e)](
-        this[_0x5d1180(0x1c6)],
-        _0x1c8df5,
-        this["_box"][_0x5d1180(0x1ea)]
-      ),
-      (_0x1c8df5 += this["_box"]["_front"][_0x5d1180(0x185)]),
-      this["_device"]["queue"][_0x5d1180(0x21e)](
-        this["_boxBuffer"],
-        _0x1c8df5,
-        this[_0x5d1180(0x23e)][_0x5d1180(0x162)]
-      ),
-      (_0x1c8df5 += this[_0x5d1180(0x23e)][_0x5d1180(0x162)][_0x5d1180(0x185)]),
-      this["_device"][_0x5d1180(0x23b)][_0x5d1180(0x21e)](
-        this["_boxBuffer"],
-        _0x1c8df5,
-        this[_0x5d1180(0x23e)][_0x5d1180(0x21d)]
-      ),
-      (_0x1c8df5 += this["_box"][_0x5d1180(0x21d)][_0x5d1180(0x185)]),
-      this[_0x5d1180(0x1b0)]["queue"]["writeBuffer"](
-        this[_0x5d1180(0x1c6)],
-        _0x1c8df5,
-        this["_box"]["_right"]
-      ),
-      (_0x1c8df5 += this["_box"][_0x5d1180(0x1ce)][_0x5d1180(0x185)]),
-      this[_0x5d1180(0x1b0)][_0x5d1180(0x23b)][_0x5d1180(0x21e)](
-        this[_0x5d1180(0x1c6)],
-        _0x1c8df5,
-        this["_box"][_0x5d1180(0x1a9)]
-      ),
-      (_0x1c8df5 += this[_0x5d1180(0x23e)][_0x5d1180(0x1a9)][_0x5d1180(0x185)]),
-      this[_0x5d1180(0x1b0)][_0x5d1180(0x23b)][_0x5d1180(0x21e)](
-        this["_boxBuffer"],
-        _0x1c8df5,
-        this[_0x5d1180(0x23e)][_0x5d1180(0x18d)]
-      );
+        this._camera._pose.byteLength +
+        this._camera._focal.byteLength +
+        this._camera._resolutions.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    this._device.queue.writeBuffer(this._cameraBuffer, 0, this._camera._pose);
+    this._device.queue.writeBuffer(
+      this._cameraBuffer,
+      this._camera._pose.byteLength,
+      this._camera._focal
+    );
+    this._device.queue.writeBuffer(
+      this._cameraBuffer,
+      this._camera._pose.byteLength + this._camera._focal.byteLength,
+      this._camera._resolutions
+    );
+    this._boxBuffer = this._device.createBuffer({
+      label: "Box " + this.getName(),
+      size:
+        this._box._pose.byteLength +
+        this._box._scales.byteLength +
+        this._box._top.byteLength * 6,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    let offset = 0;
+    this._device.queue.writeBuffer(this._boxBuffer, offset, this._box._pose);
+    offset += this._box._pose.byteLength;
+    this._device.queue.writeBuffer(this._boxBuffer, offset, this._box._scales);
+    offset += this._box._scales.byteLength;
+    this._device.queue.writeBuffer(this._boxBuffer, offset, this._box._front);
+    offset += this._box._front.byteLength;
+    this._device.queue.writeBuffer(this._boxBuffer, offset, this._box._back);
+    offset += this._box._back.byteLength;
+    this._device.queue.writeBuffer(this._boxBuffer, offset, this._box._left);
+    offset += this._box._left.byteLength;
+    this._device.queue.writeBuffer(this._boxBuffer, offset, this._box._right);
+    offset += this._box._right.byteLength;
+    this._device.queue.writeBuffer(this._boxBuffer, offset, this._box._top);
+    offset += this._box._top.byteLength;
+    this._device.queue.writeBuffer(this._boxBuffer, offset, this._box._down);
   }
-  [_0x1c9c99(0x236)]() {
-    const _0x256c20 = _0x1c9c99;
-    this["_camera"][_0x256c20(0x1b6)](this["_imgWidth"], this["_imgHeight"]),
-      this[_0x256c20(0x1b0)][_0x256c20(0x23b)][_0x256c20(0x21e)](
-        this[_0x256c20(0x20a)],
-        this[_0x256c20(0x22f)][_0x256c20(0x1e3)][_0x256c20(0x185)] +
-          this[_0x256c20(0x22f)]["_focal"][_0x256c20(0x185)],
-        this[_0x256c20(0x22f)][_0x256c20(0x1f8)]
-      );
-  }
-  [_0x1c9c99(0x21f)]() {
-    const _0x5d6050 = _0x1c9c99;
-    this[_0x5d6050(0x1b0)][_0x5d6050(0x23b)][_0x5d6050(0x21e)](
-      this[_0x5d6050(0x1c6)],
-      0x0,
-      this[_0x5d6050(0x23e)][_0x5d6050(0x1e3)]
+  updateGeometry() {
+    this._camera.updateSize(this._imgWidth, this._imgHeight);
+    this._device.queue.writeBuffer(
+      this._cameraBuffer,
+      this._camera._pose.byteLength + this._camera._focal.byteLength,
+      this._camera._resolutions
     );
   }
-  ["updateBoxScales"]() {
-    const _0x3d7c91 = _0x1c9c99;
-    this[_0x3d7c91(0x1b0)][_0x3d7c91(0x23b)][_0x3d7c91(0x21e)](
-      this[_0x3d7c91(0x1c6)],
-      this[_0x3d7c91(0x23e)][_0x3d7c91(0x1e3)][_0x3d7c91(0x185)],
-      this["_box"][_0x3d7c91(0x181)]
+  updateBoxPose() {
+    this._device.queue.writeBuffer(this._boxBuffer, 0, this._box._pose);
+  }
+  updateBoxScales() {
+    this._device.queue.writeBuffer(
+      this._boxBuffer,
+      this._box._pose.byteLength,
+      this._box._scales
     );
   }
-  [_0x1c9c99(0x22d)]() {
-    const _0x4b4c8a = _0x1c9c99;
-    this[_0x4b4c8a(0x1b0)][_0x4b4c8a(0x23b)][_0x4b4c8a(0x21e)](
-      this[_0x4b4c8a(0x20a)],
-      0x0,
-      this[_0x4b4c8a(0x22f)][_0x4b4c8a(0x1e3)]
+  updateCameraPose() {
+    this._device.queue.writeBuffer(this._cameraBuffer, 0, this._camera._pose);
+  }
+  updateCameraFocal() {
+    this._device.queue.writeBuffer(
+      this._cameraBuffer,
+      this._camera._pose.byteLength,
+      this._camera._focal
     );
   }
-  [_0x1c9c99(0x16f)]() {
-    const _0x2992a5 = _0x1c9c99;
-    this["_device"][_0x2992a5(0x23b)][_0x2992a5(0x21e)](
-      this["_cameraBuffer"],
-      this[_0x2992a5(0x22f)]["_pose"][_0x2992a5(0x185)],
-      this[_0x2992a5(0x22f)][_0x2992a5(0x226)]
-    );
-  }
-  async ["createShaders"]() {
-    const _0x20dd3b = _0x1c9c99;
-    let _0x3125a9 = await this["loadShader"]("./optimized_tracebox.wgsl");
-    (this["_shaderModule"] = this["_device"][_0x20dd3b(0x1f2)]({
-      label: "\x20Shader\x20" + this[_0x20dd3b(0x217)](),
-      code: _0x3125a9,
-    })),
-      (this["_bindGroupLayout"] = this[_0x20dd3b(0x1b0)][_0x20dd3b(0x1ba)]({
-        label: _0x20dd3b(0x21c) + this[_0x20dd3b(0x217)](),
-        entries: [
-          {
-            binding: 0x0,
-            visibility: GPUShaderStage[_0x20dd3b(0x1e8)],
-            buffer: {},
-          },
-          {
-            binding: 0x1,
-            visibility: GPUShaderStage[_0x20dd3b(0x1e8)],
-            buffer: {},
-          },
-          {
-            binding: 0x2,
-            visibility: GPUShaderStage[_0x20dd3b(0x1e8)],
-            storageTexture: { format: this[_0x20dd3b(0x24d)] },
-          },
-        ],
-      })),
-      (this["_pipelineLayout"] = this["_device"][_0x20dd3b(0x1d3)]({
-        label: _0x20dd3b(0x219),
-        bindGroupLayouts: [this[_0x20dd3b(0x1c7)]],
-      }));
-  }
-  async [_0x1c9c99(0x1b1)]() {
-    const _0x4266bb = _0x1c9c99;
-    (this[_0x4266bb(0x174)] = this["_device"][_0x4266bb(0x1b1)]({
-      label: _0x4266bb(0x203) + this[_0x4266bb(0x217)](),
-      layout: this[_0x4266bb(0x22a)],
-      compute: { module: this["_shaderModule"], entryPoint: _0x4266bb(0x20f) },
-    })),
-      (this[_0x4266bb(0x1d2)] = this[_0x4266bb(0x1b0)][_0x4266bb(0x1b1)]({
-        label: _0x4266bb(0x18e) + this[_0x4266bb(0x217)](),
-        layout: this[_0x4266bb(0x22a)],
-        compute: {
-          module: this["_shaderModule"],
-          entryPoint: _0x4266bb(0x191),
-        },
-      }));
-  }
-  [_0x1c9c99(0x1f4)](_0xb171dd) {
-    const _0x6e2a36 = _0x1c9c99;
-    (this[_0x6e2a36(0x1b5)] = this[_0x6e2a36(0x1b0)][_0x6e2a36(0x1f4)]({
-      label: _0x6e2a36(0x253),
-      layout: this["_computePipeline"][_0x6e2a36(0x195)](0x0),
+  async createShaders() {
+    let shaderCode = await this.loadShader("./optimized_tracebox.wgsl");
+    this._shaderModule = this._device.createShaderModule({
+      label: " Shader " + this.getName(),
+      code: shaderCode,
+    });
+    this._bindGroupLayout = this._device.createBindGroupLayout({
+      label: "Ray Trace Box Layout " + this.getName(),
       entries: [
-        { binding: 0x0, resource: { buffer: this[_0x6e2a36(0x20a)] } },
-        { binding: 0x1, resource: { buffer: this[_0x6e2a36(0x1c6)] } },
-        { binding: 0x2, resource: _0xb171dd["createView"]() },
+        { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: {} },
+        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: {} },
+        {
+          binding: 2,
+          visibility: GPUShaderStage.COMPUTE,
+          storageTexture: { format: this._canvasFormat },
+        },
       ],
-    })),
-      (this["_wgWidth"] = Math[_0x6e2a36(0x1bc)](_0xb171dd[_0x6e2a36(0x255)])),
-      (this["_wgHeight"] = Math[_0x6e2a36(0x1bc)](_0xb171dd[_0x6e2a36(0x1a8)]));
+    });
+    this._pipelineLayout = this._device.createPipelineLayout({
+      label: "Ray Trace Box Pipeline Layout",
+      bindGroupLayouts: [this._bindGroupLayout],
+    });
   }
-  ["compute"](_0x3f0112) {
-    const _0x1c37f6 = _0x1c9c99;
-    this[_0x1c37f6(0x22f)]?.["_isProjective"]
-      ? _0x3f0112[_0x1c37f6(0x17a)](this[_0x1c37f6(0x1d2)])
-      : _0x3f0112["setPipeline"](this[_0x1c37f6(0x174)]),
-      _0x3f0112["setBindGroup"](0x0, this["_bindGroup"]),
-      _0x3f0112[_0x1c37f6(0x1aa)](
-        Math["ceil"](this[_0x1c37f6(0x1c9)] / 0x10),
-        Math[_0x1c37f6(0x1bc)](this["_wgHeight"] / 0x10)
-      );
+  async createComputePipeline() {
+    this._computePipeline = this._device.createComputePipeline({
+      label: "Ray Trace Box Orthogonal Pipeline " + this.getName(),
+      layout: this._pipelineLayout,
+      compute: {
+        module: this._shaderModule,
+        entryPoint: "computeOrthogonalMain",
+      },
+    });
+    this._computeProjectivePipeline = this._device.createComputePipeline({
+      label: "Ray Trace Box Projective Pipeline " + this.getName(),
+      layout: this._pipelineLayout,
+      compute: {
+        module: this._shaderModule,
+        entryPoint: "computeProjectiveMain",
+      },
+    });
   }
-}
-class PGA3D {
-  static [_0x1c9c99(0x186)](_0x54455c, _0x53f115) {
-    return [
-      _0x54455c[0x0] * _0x53f115[0x0] -
-        _0x54455c[0x1] * _0x53f115[0x1] -
-        _0x54455c[0x2] * _0x53f115[0x2] -
-        _0x54455c[0x3] * _0x53f115[0x3] -
-        _0x54455c[0x7] * _0x53f115[0x7] +
-        _0x54455c[0xb] * _0x53f115[0xb] +
-        _0x54455c[0xc] * _0x53f115[0xc] +
-        _0x54455c[0xd] * _0x53f115[0xd],
-      _0x54455c[0x0] * _0x53f115[0x1] +
-        _0x54455c[0x1] * _0x53f115[0x0] -
-        _0x54455c[0x2] * _0x53f115[0x3] +
-        _0x54455c[0x3] * _0x53f115[0x2] +
-        _0x54455c[0x7] * _0x53f115[0xd] +
-        _0x54455c[0xb] * _0x53f115[0xc] -
-        _0x54455c[0xc] * _0x53f115[0xb] +
-        _0x54455c[0xd] * _0x53f115[0x7],
-      _0x54455c[0x0] * _0x53f115[0x2] +
-        _0x54455c[0x1] * _0x53f115[0x3] +
-        _0x54455c[0x2] * _0x53f115[0x0] -
-        _0x54455c[0x3] * _0x53f115[0x1] -
-        _0x54455c[0x7] * _0x53f115[0xc] +
-        _0x54455c[0xb] * _0x53f115[0xd] -
-        _0x54455c[0xc] * _0x53f115[0x7] -
-        _0x54455c[0xd] * _0x53f115[0xb],
-      _0x54455c[0x0] * _0x53f115[0x3] -
-        _0x54455c[0x1] * _0x53f115[0x2] +
-        _0x54455c[0x2] * _0x53f115[0x1] +
-        _0x54455c[0x3] * _0x53f115[0x0] +
-        _0x54455c[0x7] * _0x53f115[0xb] +
-        _0x54455c[0xb] * _0x53f115[0x7] +
-        _0x54455c[0xc] * _0x53f115[0xd] -
-        _0x54455c[0xd] * _0x53f115[0xc],
-      _0x54455c[0x0] * _0x53f115[0x4] +
-        _0x54455c[0x1] * _0x53f115[0x5] +
-        _0x54455c[0x2] * _0x53f115[0x6] -
-        _0x54455c[0x3] * _0x53f115[0xf] +
-        _0x54455c[0x4] * _0x53f115[0x0] -
-        _0x54455c[0x5] * _0x53f115[0x1] -
-        _0x54455c[0x6] * _0x53f115[0x2] +
-        _0x54455c[0x7] * _0x53f115[0xa] +
-        _0x54455c[0x8] * _0x53f115[0xc] +
-        _0x54455c[0x9] * _0x53f115[0xd] -
-        _0x54455c[0xa] * _0x53f115[0x7] -
-        _0x54455c[0xb] * _0x53f115[0xe] +
-        _0x54455c[0xc] * _0x53f115[0x8] +
-        _0x54455c[0xd] * _0x53f115[0x9] +
-        _0x54455c[0xe] * _0x53f115[0xb] -
-        _0x54455c[0xf] * _0x53f115[0x3],
-      _0x54455c[0x0] * _0x53f115[0x5] -
-        _0x54455c[0x1] * _0x53f115[0x4] +
-        _0x54455c[0x2] * _0x53f115[0xf] +
-        _0x54455c[0x3] * _0x53f115[0x6] +
-        _0x54455c[0x4] * _0x53f115[0x1] +
-        _0x54455c[0x5] * _0x53f115[0x0] -
-        _0x54455c[0x6] * _0x53f115[0x3] -
-        _0x54455c[0x7] * _0x53f115[0x9] -
-        _0x54455c[0x8] * _0x53f115[0xb] +
-        _0x54455c[0x9] * _0x53f115[0x7] +
-        _0x54455c[0xa] * _0x53f115[0xc] -
-        _0x54455c[0xb] * _0x53f115[0x8] -
-        _0x54455c[0xc] * _0x53f115[0xe] +
-        _0x54455c[0xd] * _0x53f115[0xa] +
-        _0x54455c[0xe] * _0x53f115[0xc] +
-        _0x54455c[0xf] * _0x53f115[0x2],
-      _0x54455c[0x0] * _0x53f115[0x6] -
-        _0x54455c[0x1] * _0x53f115[0xf] -
-        _0x54455c[0x2] * _0x53f115[0x4] -
-        _0x54455c[0x3] * _0x53f115[0x5] +
-        _0x54455c[0x4] * _0x53f115[0x2] +
-        _0x54455c[0x5] * _0x53f115[0x3] +
-        _0x54455c[0x6] * _0x53f115[0x0] +
-        _0x54455c[0x7] * _0x53f115[0x8] -
-        _0x54455c[0x8] * _0x53f115[0x7] -
-        _0x54455c[0x9] * _0x53f115[0xb] -
-        _0x54455c[0xa] * _0x53f115[0xc] -
-        _0x54455c[0xb] * _0x53f115[0x9] -
-        _0x54455c[0xc] * _0x53f115[0xa] -
-        _0x54455c[0xd] * _0x53f115[0xe] +
-        _0x54455c[0xe] * _0x53f115[0xd] -
-        _0x54455c[0xf] * _0x53f115[0x1],
-      _0x54455c[0x0] * _0x53f115[0x7] +
-        _0x54455c[0x1] * _0x53f115[0xd] -
-        _0x54455c[0x2] * _0x53f115[0xc] +
-        _0x54455c[0x3] * _0x53f115[0xb] +
-        _0x54455c[0x7] * _0x53f115[0x0] +
-        _0x54455c[0xb] * _0x53f115[0x3] -
-        _0x54455c[0xc] * _0x53f115[0x2] +
-        _0x54455c[0xd] * _0x53f115[0x1],
-      _0x54455c[0x0] * _0x53f115[0x8] +
-        _0x54455c[0x1] * _0x53f115[0xe] -
-        _0x54455c[0x2] * _0x53f115[0xa] +
-        _0x54455c[0x3] * _0x53f115[0x9] +
-        _0x54455c[0x4] * _0x53f115[0xc] -
-        _0x54455c[0x5] * _0x53f115[0xb] +
-        _0x54455c[0x6] * _0x53f115[0x7] -
-        _0x54455c[0x7] * _0x53f115[0x6] +
-        _0x54455c[0x8] * _0x53f115[0x0] -
-        _0x54455c[0x9] * _0x53f115[0x3] +
-        _0x54455c[0xa] * _0x53f115[0x2] -
-        _0x54455c[0xb] * _0x53f115[0x5] +
-        _0x54455c[0xc] * _0x53f115[0x4] -
-        _0x54455c[0xd] * _0x53f115[0xf] +
-        _0x54455c[0xe] * _0x53f115[0x1] +
-        _0x54455c[0xf] * _0x53f115[0xd],
-      _0x54455c[0x0] * _0x53f115[0x9] +
-        _0x54455c[0x1] * _0x53f115[0xa] +
-        _0x54455c[0x2] * _0x53f115[0xe] -
-        _0x54455c[0x3] * _0x53f115[0x8] +
-        _0x54455c[0x4] * _0x53f115[0xd] -
-        _0x54455c[0x5] * _0x53f115[0x7] -
-        _0x54455c[0x6] * _0x53f115[0xb] +
-        _0x54455c[0x7] * _0x53f115[0x5] +
-        _0x54455c[0x8] * _0x53f115[0x3] +
-        _0x54455c[0x9] * _0x53f115[0x0] -
-        _0x54455c[0xa] * _0x53f115[0x1] -
-        _0x54455c[0xb] * _0x53f115[0x6] +
-        _0x54455c[0xc] * _0x53f115[0xf] +
-        _0x54455c[0xd] * _0x53f115[0x4] +
-        _0x54455c[0xe] * _0x53f115[0x2] -
-        _0x54455c[0xf] * _0x53f115[0xc],
-      _0x54455c[0x0] * _0x53f115[0xa] -
-        _0x54455c[0x1] * _0x53f115[0x9] +
-        _0x54455c[0x2] * _0x53f115[0x8] +
-        _0x54455c[0x3] * _0x53f115[0xe] +
-        _0x54455c[0x4] * _0x53f115[0x7] +
-        _0x54455c[0x5] * _0x53f115[0xd] -
-        _0x54455c[0x6] * _0x53f115[0xc] -
-        _0x54455c[0x7] * _0x53f115[0x4] -
-        _0x54455c[0x8] * _0x53f115[0x2] +
-        _0x54455c[0x9] * _0x53f115[0x1] +
-        _0x54455c[0xa] * _0x53f115[0x0] -
-        _0x54455c[0xb] * _0x53f115[0xf] -
-        _0x54455c[0xc] * _0x53f115[0x6] +
-        _0x54455c[0xd] * _0x53f115[0x5] +
-        _0x54455c[0xe] * _0x53f115[0x3] +
-        _0x54455c[0xf] * _0x53f115[0xb],
-      _0x54455c[0x0] * _0x53f115[0xb] +
-        _0x54455c[0x1] * _0x53f115[0xc] +
-        _0x54455c[0x2] * _0x53f115[0xd] -
-        _0x54455c[0x3] * _0x53f115[0x7] -
-        _0x54455c[0x7] * _0x53f115[0x3] +
-        _0x54455c[0xb] * _0x53f115[0x0] -
-        _0x54455c[0xc] * _0x53f115[0x1] -
-        _0x54455c[0xd] * _0x53f115[0x2],
-      _0x54455c[0x0] * _0x53f115[0xc] -
-        _0x54455c[0x1] * _0x53f115[0xb] +
-        _0x54455c[0x2] * _0x53f115[0x7] +
-        _0x54455c[0x3] * _0x53f115[0xd] +
-        _0x54455c[0x7] * _0x53f115[0x2] +
-        _0x54455c[0xb] * _0x53f115[0x1] +
-        _0x54455c[0xc] * _0x53f115[0x0] -
-        _0x54455c[0xd] * _0x53f115[0x3],
-      _0x54455c[0x0] * _0x53f115[0xd] -
-        _0x54455c[0x1] * _0x53f115[0x7] -
-        _0x54455c[0x2] * _0x53f115[0xb] -
-        _0x54455c[0x3] * _0x53f115[0xc] -
-        _0x54455c[0x7] * _0x53f115[0x1] +
-        _0x54455c[0xb] * _0x53f115[0x2] +
-        _0x54455c[0xc] * _0x53f115[0x3] +
-        _0x54455c[0xd] * _0x53f115[0x0],
-      _0x54455c[0x0] * _0x53f115[0xe] -
-        _0x54455c[0x1] * _0x53f115[0x8] -
-        _0x54455c[0x2] * _0x53f115[0x9] -
-        _0x54455c[0x3] * _0x53f115[0xa] +
-        _0x54455c[0x4] * _0x53f115[0xb] +
-        _0x54455c[0x5] * _0x53f115[0xc] +
-        _0x54455c[0x6] * _0x53f115[0xd] +
-        _0x54455c[0x7] * _0x53f115[0xf] -
-        _0x54455c[0x8] * _0x53f115[0x1] -
-        _0x54455c[0x9] * _0x53f115[0x2] -
-        _0x54455c[0xa] * _0x53f115[0x3] -
-        _0x54455c[0xb] * _0x53f115[0x4] -
-        _0x54455c[0xc] * _0x53f115[0x5] -
-        _0x54455c[0xd] * _0x53f115[0x6] +
-        _0x54455c[0xe] * _0x53f115[0x0] -
-        _0x54455c[0xf] * _0x53f115[0x7],
-      _0x54455c[0x0] * _0x53f115[0xf] +
-        _0x54455c[0x1] * _0x53f115[0x6] -
-        _0x54455c[0x2] * _0x53f115[0x5] +
-        _0x54455c[0x3] * _0x53f115[0x4] +
-        _0x54455c[0x4] * _0x53f115[0x3] -
-        _0x54455c[0x5] * _0x53f115[0x2] +
-        _0x54455c[0x6] * _0x53f115[0x1] -
-        _0x54455c[0x7] * _0x53f115[0xe] +
-        _0x54455c[0x8] * _0x53f115[0xd] -
-        _0x54455c[0x9] * _0x53f115[0xc] +
-        _0x54455c[0xa] * _0x53f115[0xb] -
-        _0x54455c[0xb] * _0x53f115[0xa] +
-        _0x54455c[0xc] * _0x53f115[0x9] -
-        _0x54455c[0xd] * _0x53f115[0x8] +
-        _0x54455c[0xe] * _0x53f115[0x7] +
-        _0x54455c[0xf] * _0x53f115[0x0],
-    ];
+  createBindGroup(outTexture) {
+    this._bindGroup = this._device.createBindGroup({
+      label: "Ray Trace Box Bind Group",
+      layout: this._computePipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: this._cameraBuffer } },
+        { binding: 1, resource: { buffer: this._boxBuffer } },
+        { binding: 2, resource: outTexture.createView() },
+      ],
+    });
+    this._wgWidth = Math.ceil(outTexture.width);
+    this._wgHeight = Math.ceil(outTexture.height);
   }
-  static [_0x1c9c99(0x246)](_0xa0866e) {
-    return [
-      _0xa0866e[0x0],
-      -_0xa0866e[0x1],
-      -_0xa0866e[0x2],
-      -_0xa0866e[0x3],
-      -_0xa0866e[0x4],
-      -_0xa0866e[0x5],
-      -_0xa0866e[0x6],
-      -_0xa0866e[0x7],
-      -_0xa0866e[0x8],
-      -_0xa0866e[0x9],
-      -_0xa0866e[0xa],
-      _0xa0866e[0xb],
-      _0xa0866e[0xc],
-      _0xa0866e[0xd],
-      _0xa0866e[0xe],
-      _0xa0866e[0xf],
-    ];
-  }
-  static ["applyMotor"](_0x168151, _0x364075) {
-    const _0x4d163d = _0x1c9c99;
-    return PGA3D[_0x4d163d(0x186)](
-      _0x364075,
-      PGA3D["geometricProduct"](_0x168151, PGA3D[_0x4d163d(0x246)](_0x364075))
-    );
-  }
-  static ["motorNorm"](_0x1f6912) {
-    const _0x1a0d2d = _0x1c9c99;
-    return Math[_0x1a0d2d(0x17c)](
-      _0x1f6912[_0x1a0d2d(0x1bf)]((_0x2ddfc1) => _0x2ddfc1 * _0x2ddfc1)[
-        _0x1a0d2d(0x166)
-      ]((_0x5e1d1b, _0x1b3c5d) => _0x5e1d1b + _0x1b3c5d, 0x0)
-    );
-  }
-  static [_0x1c9c99(0x182)](_0x26848f, _0x3e424f, _0x146add) {
-    return [
-      0x1,
-      0x0,
-      0x0,
-      0x0,
-      -_0x26848f / 0x2,
-      -_0x3e424f / 0x2,
-      -_0x146add / 0x2,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-    ];
-  }
-  static [_0x1c9c99(0x1e2)](_0x8a28d3) {
-    return [
-      0x1,
-      0x0,
-      0x0,
-      0x0,
-      _0x8a28d3[0x4],
-      _0x8a28d3[0x5],
-      _0x8a28d3[0x6],
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-    ];
-  }
-  static ["createRotor"](
-    _0x228f67,
-    _0xd13009 = 0x1,
-    _0x363fe2 = 0x0,
-    _0x4ec164 = 0x0,
-    _0x17b55f = 0x0,
-    _0x4b579b = 0x0,
-    _0x1b659c = 0x0
-  ) {
-    const _0x4c38fb = _0x1c9c99;
-    let _0x463926 = Math[_0x4c38fb(0x1e4)](_0x228f67 / 0x2),
-      _0x5b5b5a = Math[_0x4c38fb(0x1f5)](_0x228f67 / 0x2),
-      _0x260d20 = PGA3D[_0x4c38fb(0x238)](
-        _0x17b55f,
-        _0x4b579b,
-        _0x1b659c,
-        _0xd13009,
-        _0x363fe2,
-        _0x4ec164
-      );
-    return [
-      _0x463926,
-      _0x5b5b5a * _0x260d20[0x1],
-      _0x5b5b5a * _0x260d20[0x2],
-      _0x5b5b5a * _0x260d20[0x3],
-      _0x5b5b5a * _0x260d20[0x4],
-      _0x5b5b5a * _0x260d20[0x5],
-      _0x5b5b5a * _0x260d20[0x6],
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-    ];
-  }
-  static [_0x1c9c99(0x18f)](_0x4c10f6) {
-    return [
-      _0x4c10f6[0x0],
-      _0x4c10f6[0x1],
-      _0x4c10f6[0x2],
-      _0x4c10f6[0x3],
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-    ];
-  }
-  static ["createDir"](_0x2b8be3, _0x13ea80, _0x412e52) {
-    return [
-      0x0,
-      _0x412e52,
-      -_0x13ea80,
-      _0x2b8be3,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-    ];
-  }
-  static [_0x1c9c99(0x238)](
-    _0x56c66e,
-    _0x30ba27,
-    _0xfea076,
-    _0x45a70b,
-    _0x114dc2,
-    _0x5bdc4d
-  ) {
-    const _0x31a7a2 = _0x1c9c99;
-    let _0x2d2d0a = PGA3D[_0x31a7a2(0x1ed)](_0x45a70b, _0x114dc2, _0x5bdc4d),
-      _0x4289f7 = PGA3D["normalizeMotor"](_0x2d2d0a);
-    return [
-      0x0,
-      _0x4289f7[0x1],
-      _0x4289f7[0x2],
-      _0x4289f7[0x3],
-      -(-_0x4289f7[0x2] * _0xfea076 - _0x4289f7[0x1] * _0x30ba27),
-      -(_0x4289f7[0x1] * _0x56c66e - _0x4289f7[0x3] * _0xfea076),
-      -(_0x4289f7[0x3] * _0x30ba27 + _0x4289f7[0x2] * _0x56c66e),
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-    ];
-  }
-  static [_0x1c9c99(0x1c5)](_0x443a8d, _0x22f16e, _0x36a946) {
-    return [
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x1,
-      -_0x36a946,
-      _0x22f16e,
-      -_0x443a8d,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-    ];
-  }
-  static [_0x1c9c99(0x1dd)](_0x464991) {
-    return [
-      -_0x464991[0xa] / _0x464991[0x7],
-      _0x464991[0x9] / _0x464991[0x7],
-      -_0x464991[0x8] / _0x464991[0x7],
-    ];
-  }
-  static ["createPlane"](_0xb9e2f3, _0x37c24a, _0xf41aa8, _0x32e1e7) {
-    return [
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      0x0,
-      _0xb9e2f3,
-      _0x37c24a,
-      _0xf41aa8,
-      -_0x32e1e7,
-      0x0,
-    ];
-  }
-  static [_0x1c9c99(0x1d1)](_0x4bec71, _0x3c591e, _0x476971) {
-    const _0xb79073 = _0x1c9c99;
-    let _0x4ee473 =
-        _0x3c591e[0x1] * _0x476971[0x2] -
-        _0x476971[0x1] * _0x3c591e[0x2] -
-        (_0x4bec71[0x1] * _0x476971[0x2] - _0x476971[0x1] * _0x4bec71[0x2]) +
-        (_0x4bec71[0x1] * _0x3c591e[0x2] - _0x3c591e[0x1] * _0x4bec71[0x2]),
-      _0x14ca9b =
-        _0x3c591e[0x0] * _0x476971[0x2] -
-        _0x476971[0x0] * _0x3c591e[0x2] -
-        (_0x4bec71[0x0] * _0x476971[0x2] - _0x476971[0x0] * _0x4bec71[0x2]) +
-        (_0x4bec71[0x0] * _0x3c591e[0x2] - _0x3c591e[0x0] * _0x4bec71[0x2]),
-      _0x2c69dc =
-        _0x3c591e[0x0] * _0x476971[0x1] -
-        _0x476971[0x0] * _0x3c591e[0x1] -
-        (_0x4bec71[0x0] * _0x476971[0x1] - _0x476971[0x0] * _0x4bec71[0x1]) +
-        (_0x4bec71[0x0] * _0x3c591e[0x1] - _0x3c591e[0x0] * _0x4bec71[0x1]),
-      _0x441daa =
-        _0x4bec71[0x0] *
-          (_0x3c591e[0x1] * _0x476971[0x2] - _0x476971[0x1] * _0x3c591e[0x2]) -
-        _0x3c591e[0x0] *
-          (_0x4bec71[0x1] * _0x476971[0x2] - _0x476971[0x1] * _0x4bec71[0x2]) +
-        _0x476971[0x0] *
-          (_0x4bec71[0x1] * _0x3c591e[0x2] - _0x3c591e[0x1] * _0x4bec71[0x2]);
-    return PGA3D[_0xb79073(0x212)](_0x4ee473, -_0x14ca9b, _0x2c69dc, _0x441daa);
-  }
-  static [_0x1c9c99(0x24c)](_0x1df104, _0x152d01) {
-    const _0x14906b = _0x1c9c99;
-    let _0x520d1c = PGA3D[_0x14906b(0x186)](_0x1df104, _0x152d01),
-      _0x512922 = Math[_0x14906b(0x24e)](_0x520d1c[0x7]) <= 1e-8,
-      _0x4fb1af =
-        _0x512922 &&
-        Math[_0x14906b(0x24e)](_0x520d1c[0x8]) <= 1e-8 &&
-        Math[_0x14906b(0x24e)](_0x520d1c[0x9]) <= 1e-8 &&
-        Math["abs"](_0x520d1c[0xa]) <= 1e-8;
-    return [PGA3D[_0x14906b(0x1dd)](_0x520d1c), !_0x512922, _0x4fb1af];
-  }
-  static [_0x1c9c99(0x22c)](_0x5d82b4) {
-    const _0x1e9875 = _0x1c9c99;
-    let _0x253935 = PGA3D[_0x1e9875(0x190)](_0x5d82b4);
-    if (_0x253935 == 0x0)
-      return [
-        0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-        0x0, 0x0,
-      ];
-    return _0x5d82b4[_0x1e9875(0x1bf)]((_0x5cfcc1) => _0x5cfcc1 / _0x253935);
-  }
-  static [_0x1c9c99(0x167)](_0x4dee62, _0x265869) {
-    const _0x3c07af = _0x1c9c99;
-    let _0x3074ce = PGA3D[_0x3c07af(0x245)](
-      PGA3D[_0x3c07af(0x1c5)](_0x4dee62[0x0], _0x4dee62[0x1], _0x4dee62[0x2]),
-      _0x265869
-    );
-    return PGA3D[_0x3c07af(0x1dd)](_0x3074ce);
-  }
-  static [_0x1c9c99(0x1a2)](_0x17bc68, _0x2a2fec) {
-    const _0x18f54e = _0x1c9c99;
-    let _0x56b313 = PGA3D["extractRotor"](_0x2a2fec),
-      _0x14f888 = PGA3D["applyMotor"](
-        PGA3D[_0x18f54e(0x1c5)](_0x17bc68[0x0], _0x17bc68[0x1], _0x17bc68[0x2]),
-        _0x56b313
-      );
-    return PGA3D[_0x18f54e(0x1dd)](_0x14f888);
-  }
-  static [_0x1c9c99(0x213)](_0x4eda3e, _0x31bec3, _0x21a5af, _0x224703) {
-    const _0x3f965f = _0x1c9c99;
-    let _0x1bd31a = PGA3D[_0x3f965f(0x1c5)](
-        _0x4eda3e[0x0],
-        _0x4eda3e[0x1],
-        _0x4eda3e[0x2]
-      ),
-      _0x10be80 = PGA3D[_0x3f965f(0x1c5)](
-        _0x31bec3[0x0],
-        _0x31bec3[0x1],
-        _0x31bec3[0x2]
-      ),
-      _0x1c2807 = PGA3D["createPoint"](
-        _0x21a5af[0x0],
-        _0x21a5af[0x1],
-        _0x21a5af[0x2]
-      ),
-      _0x210ef8 = PGA3D[_0x3f965f(0x1c5)](
-        _0x224703[0x0],
-        _0x224703[0x1],
-        _0x224703[0x2]
-      ),
-      _0x2ee9f6 = PGA3D[_0x3f965f(0x1d1)](_0x4eda3e, _0x31bec3, _0x21a5af),
-      _0x18fd66 = PGA3D[_0x3f965f(0x1d1)](_0x224703, _0x31bec3, _0x21a5af),
-      _0xd9bf4e = PGA3D[_0x3f965f(0x1d1)](_0x4eda3e, _0x224703, _0x21a5af),
-      _0x481183 = PGA3D["createPlaneFromPoints"](
-        _0x4eda3e,
-        _0x31bec3,
-        _0x224703
-      ),
-      _0x482e50 =
-        _0x2ee9f6[0xb] * _0x2ee9f6[0xb] +
-        _0x2ee9f6[0xc] * _0x2ee9f6[0xc] +
-        _0x2ee9f6[0xd] * _0x2ee9f6[0xd] +
-        _0x2ee9f6[0xe] * _0x2ee9f6[0xe],
-      _0x54660d =
-        _0x2ee9f6[0xb] * _0x18fd66[0xb] +
-        _0x2ee9f6[0xc] * _0x18fd66[0xc] +
-        _0x2ee9f6[0xd] * _0x18fd66[0xd] +
-        _0x2ee9f6[0xe] * _0x18fd66[0xe],
-      _0x4982d9 =
-        _0x2ee9f6[0xb] * _0xd9bf4e[0xb] +
-        _0x2ee9f6[0xc] * _0xd9bf4e[0xc] +
-        _0x2ee9f6[0xd] * _0xd9bf4e[0xd] +
-        _0x2ee9f6[0xe] * _0xd9bf4e[0xe],
-      _0x12facf =
-        _0x2ee9f6[0xb] * _0x481183[0xb] +
-        _0x2ee9f6[0xc] * _0x481183[0xc] +
-        _0x2ee9f6[0xd] * _0x481183[0xd] +
-        _0x2ee9f6[0xe] * _0x481183[0xe],
-      _0x4ed711 = _0x54660d / _0x482e50,
-      _0x3a6116 = _0x4982d9 / _0x482e50,
-      _0x5553bd = _0x12facf / _0x482e50;
-    return (
-      _0x4ed711 >= 0x0 &&
-      _0x4ed711 <= 0x1 &&
-      _0x3a6116 >= 0x0 &&
-      _0x3a6116 <= 0x1 &&
-      _0x5553bd >= 0x0 &&
-      _0x5553bd <= 0x1
+  compute(pass) {
+    if (this._camera?._isProjective) {
+      pass.setPipeline(this._computeProjectivePipeline);
+    } else {
+      pass.setPipeline(this._computePipeline);
+    }
+    pass.setBindGroup(0, this._bindGroup);
+    pass.dispatchWorkgroups(
+      Math.ceil(this._wgWidth / 16),
+      Math.ceil(this._wgHeight / 16)
     );
   }
 }
 class Camera {
-  constructor(_0x4eb3b7, _0xc0cc7f) {
-    const _0x199798 = _0x1c9c99;
-    (this[_0x199798(0x1e3)] = new Float32Array(
-      Array(0x10)[_0x199798(0x178)](0x0)
-    )),
-      (this[_0x199798(0x1e3)][0x0] = 0x1),
-      (this[_0x199798(0x226)] = new Float32Array(Array(0x2)["fill"](0x1))),
-      (this["_resolutions"] = new Float32Array([_0x4eb3b7, _0xc0cc7f]));
+  constructor(width, height) {
+    this._pose = new Float32Array(Array(16).fill(0));
+    this._pose[0] = 1;
+    this._focal = new Float32Array(Array(2).fill(1));
+    this._resolutions = new Float32Array([width, height]);
   }
-  [_0x1c9c99(0x1b3)]() {
-    const _0x181008 = _0x1c9c99;
-    this[_0x181008(0x1e3)][0x0] = 0x1;
-    for (let _0x375e96 = 0x1; _0x375e96 < 0x10; ++_0x375e96)
-      this[_0x181008(0x1e3)][_0x375e96] = 0x0;
-    (this["_focal"][0x0] = 0x1), (this[_0x181008(0x226)][0x1] = 0x1);
+  resetPose() {
+    this._pose[0] = 1;
+    for (let i = 1; i < 16; ++i) this._pose[i] = 0;
+    this._focal[0] = 1;
+    this._focal[1] = 1;
   }
-  [_0x1c9c99(0x220)](_0x474c85) {
-    const _0x54d143 = _0x1c9c99;
-    for (let _0x4a3254 = 0x0; _0x4a3254 < 0x10; ++_0x4a3254)
-      this[_0x54d143(0x1e3)][_0x4a3254] = _0x474c85[_0x4a3254];
+  updatePose(newpose) {
+    for (let i = 0; i < 16; ++i) this._pose[i] = newpose[i];
   }
-  [_0x1c9c99(0x1b6)](_0x21e803, _0x4c340c) {
-    const _0x2f250b = _0x1c9c99;
-    (this["_resolutions"][0x0] = _0x21e803),
-      (this[_0x2f250b(0x1f8)][0x1] = _0x4c340c);
+  updateSize(width, height) {
+    this._resolutions[0] = width;
+    this._resolutions[1] = height;
   }
-  [_0x1c9c99(0x1df)](_0x2da186) {
-    const _0x39ef5d = _0x1c9c99,
-      _0x10d023 = PGA3D[_0x39ef5d(0x182)](_0x2da186, 0x0, 0x0),
-      _0xc920d2 = PGA3D[_0x39ef5d(0x186)](_0x10d023, this[_0x39ef5d(0x1e3)]);
-    this["updatePose"](_0xc920d2);
+  moveX(d) {
+    const translator = PGA3D.createTranslator(d, 0, 0);
+    const newpose = PGA3D.geometricProduct(translator, this._pose);
+    this.updatePose(newpose);
   }
-  ["moveY"](_0x4f84dd) {
-    const _0x5f461a = _0x1c9c99,
-      _0x1202b2 = PGA3D[_0x5f461a(0x182)](0x0, _0x4f84dd, 0x0),
-      _0x2c5804 = PGA3D[_0x5f461a(0x186)](_0x1202b2, this["_pose"]);
-    this[_0x5f461a(0x220)](_0x2c5804);
+  moveY(d) {
+    const translator = PGA3D.createTranslator(0, d, 0);
+    const newpose = PGA3D.geometricProduct(translator, this._pose);
+    this.updatePose(newpose);
   }
-  [_0x1c9c99(0x221)](_0x13fac9) {
-    const _0x51ed30 = _0x1c9c99,
-      _0x2096f7 = PGA3D[_0x51ed30(0x182)](0x0, 0x0, _0x13fac9),
-      _0xe0c714 = PGA3D["geometricProduct"](_0x2096f7, this[_0x51ed30(0x1e3)]);
-    this[_0x51ed30(0x220)](_0xe0c714);
+  moveZ(d) {
+    const translator = PGA3D.createTranslator(0, 0, d);
+    const newpose = PGA3D.geometricProduct(translator, this._pose);
+    this.updatePose(newpose);
   }
-  ["rotateX"](_0x1a0b27) {
-    const _0x375bd6 = _0x1c9c99,
-      _0x4abff5 = PGA3D[_0x375bd6(0x165)](_0x1a0b27, 0x1, 0x0, 0x0),
-      _0x45ec34 = PGA3D[_0x375bd6(0x186)](_0x4abff5, this["_pose"]);
-    this["updatePose"](_0x45ec34);
+  rotateX(d) {
+    const rotor = PGA3D.createRotor(d, 1, 0, 0);
+    const newpose = PGA3D.geometricProduct(rotor, this._pose);
+    this.updatePose(newpose);
   }
-  [_0x1c9c99(0x251)](_0x162173) {
-    const _0x59631d = _0x1c9c99,
-      _0x8fd80b = PGA3D["createRotor"](_0x162173, 0x0, 0x1, 0x0),
-      _0x1cbf65 = PGA3D[_0x59631d(0x186)](_0x8fd80b, this["_pose"]);
-    this[_0x59631d(0x220)](_0x1cbf65);
+  rotateY(d) {
+    const rotor = PGA3D.createRotor(d, 0, 1, 0);
+    const newpose = PGA3D.geometricProduct(rotor, this._pose);
+    this.updatePose(newpose);
   }
-  [_0x1c9c99(0x197)](_0x4adc53) {
-    const _0x17a662 = _0x1c9c99,
-      _0x207372 = PGA3D[_0x17a662(0x165)](_0x4adc53, 0x0, 0x0, 0x1),
-      _0x5c2e3b = PGA3D[_0x17a662(0x186)](_0x207372, this[_0x17a662(0x1e3)]);
-    this[_0x17a662(0x220)](_0x5c2e3b);
+  rotateZ(d) {
+    const rotor = PGA3D.createRotor(d, 0, 0, 1);
+    const newpose = PGA3D.geometricProduct(rotor, this._pose);
+    this.updatePose(newpose);
+  }
+  changeFocal(delta) {
+    this._focal[0] += delta;
+    this._focal[1] += delta;
+    console.log(`Focal length: ${this._focal}`);
   }
 }
 async function init() {
-  const _0x5c89fe = _0x1c9c99,
-    _0x126f36 = document["createElement"]("canvas");
-  (_0x126f36["id"] = "renderCanvas"),
-    document["body"][_0x5c89fe(0x161)](_0x126f36);
-  const _0x4a25e3 = new RayTracer(_0x126f36);
-  await _0x4a25e3[_0x5c89fe(0x1ae)]();
-  var _0x50ea74 = new Camera();
-  _0x50ea74[_0x5c89fe(0x234)] = ![];
-  var _0x2b7011 = new RayTracingBoxObject(
-    _0x4a25e3[_0x5c89fe(0x1b0)],
-    _0x4a25e3[_0x5c89fe(0x24d)],
-    _0x50ea74
+  const canvasTag = document.createElement("canvas");
+  canvasTag.id = "renderCanvas";
+  document.body.appendChild(canvasTag);
+  const tracer = new RayTracer(canvasTag);
+  await tracer.init();
+  var camera = new Camera();
+  camera._isProjective = false;
+  var tracerObj = new RayTracingBoxObject(
+    tracer._device,
+    tracer._canvasFormat,
+    camera
   );
-  await _0x4a25e3[_0x5c89fe(0x1b4)](_0x2b7011);
-  let _0x1563ff = "??";
-  const _0x69c7e7 =
-    _0x5c89fe(0x19e) +
-    _0x5c89fe(0x1cd) +
-    _0x5c89fe(0x1f7) +
-    _0x5c89fe(0x196) +
-    _0x5c89fe(0x1ee) +
-    _0x5c89fe(0x1f1) +
-    _0x5c89fe(0x214) +
-    _0x5c89fe(0x240) +
-    _0x5c89fe(0x1f3) +
-    _0x5c89fe(0x16e) +
-    _0x5c89fe(0x229);
-  var _0xa42470 = new StandardTextObject(
-      "fps:\x20" + _0x1563ff + "\x0a\x0a" + _0x69c7e7
-    ),
-    _0xa42470 = new StandardTextObject(
-      _0x5c89fe(0x1e1) + _0x1563ff + "\x0a\x0a" + _0x69c7e7
-    );
-  const _0x3a3daf = 0.1,
-    _0x33de08 = 0.05;
-  window[_0x5c89fe(0x192)](
-    _0x5c89fe(0x254),
-    function (_0x17790e) {
-      const _0x15757f = _0x5c89fe;
-      if (_0x17790e[_0x15757f(0x1a3)]) return;
-      switch (_0x17790e["key"]) {
+  await tracer.setTracerObject(tracerObj);
+  let fps = "??";
+  const controlsText =
+    "Controls:\n" +
+    "Movement:\n" +
+    "  W / S - Forward / Back\n" +
+    "  A / D - Left / Right\n" +
+    "  Q / E - Down / Up\n" +
+    "Rotation:\n" +
+    "  J / K - Pitch Down / Up\n" +
+    "  H / L - Yaw Left / Right\n" +
+    "  U / O - Roll CW / CCW\n" +
+    "Camera Mode:\n" +
+    "  P - Toggle (Orthogonal/Projective)\n" +
+    "Focal Length (Projective Mode):\n" +
+    "  [ / ] - Decrease / Increase\n" +
+    "Box Translation:\n" +
+    "  1/2 - Move X+/X-\n" +
+    "  3/4 - Move Y+/Y-\n" +
+    "  5/6 - Move Z+/Z-\n" +
+    "Box Rotation:\n" +
+    "  7/8 - Rotate around X\n" +
+    "  9/0 - Rotate around Y\n" +
+    "  -/= - Rotate around Z";
+  var fpsText = new StandardTextObject("fps: " + fps + "\n\n" + controlsText);
+  var fpsText = new StandardTextObject("fps: " + fps + "\n\n" + controlsText);
+  const moveSpeed = 0.1;
+  const rotateSpeed = 0.05;
+  const focalStep = 0.1;
+  const boxMoveSpeed = 0.1;
+  const boxRotateSpeed = 0.05;
+  window.addEventListener(
+    "keydown",
+    function (event) {
+      if (event.defaultPrevented) {
+        return;
+      }
+      switch (event.key) {
         case "D":
         case "d":
-          _0x50ea74[_0x15757f(0x1df)](-_0x3a3daf);
+          camera.moveX(-moveSpeed);
           break;
         case "A":
         case "a":
-          _0x50ea74["moveX"](_0x3a3daf);
+          camera.moveX(moveSpeed);
           break;
         case "W":
         case "w":
-          _0x50ea74[_0x15757f(0x221)](-_0x3a3daf);
+          camera.moveZ(-moveSpeed);
           break;
         case "S":
         case "s":
-          _0x50ea74["moveZ"](_0x3a3daf);
+          camera.moveZ(moveSpeed);
           break;
         case "Q":
         case "q":
-          _0x50ea74[_0x15757f(0x1d5)](-_0x3a3daf);
+          camera.moveY(-moveSpeed);
           break;
         case "E":
         case "e":
-          _0x50ea74[_0x15757f(0x1d5)](_0x3a3daf);
+          camera.moveY(moveSpeed);
           break;
         case "J":
         case "j":
-          _0x50ea74[_0x15757f(0x1cb)](_0x33de08);
+          camera.rotateX(rotateSpeed);
           break;
         case "K":
         case "k":
-          _0x50ea74[_0x15757f(0x1cb)](-_0x33de08);
+          camera.rotateX(-rotateSpeed);
           break;
         case "L":
         case "l":
-          _0x50ea74["rotateY"](-_0x33de08);
+          camera.rotateY(-rotateSpeed);
           break;
         case "H":
         case "h":
-          _0x50ea74[_0x15757f(0x251)](_0x33de08);
+          camera.rotateY(rotateSpeed);
           break;
         case "U":
         case "u":
-          _0x50ea74[_0x15757f(0x197)](_0x33de08);
+          camera.rotateZ(rotateSpeed);
           break;
         case "O":
         case "o":
-          _0x50ea74[_0x15757f(0x197)](-_0x33de08);
+          camera.rotateZ(-rotateSpeed);
           break;
         case "P":
         case "p":
-          (_0x50ea74["_isProjective"] = !_0x50ea74["_isProjective"]),
-            _0x2b7011[_0x15757f(0x22d)]();
+          camera._isProjective = !camera._isProjective;
+          tracerObj.updateCameraPose();
+          break;
+        case "[":
+          camera.changeFocal(focalStep);
+          tracerObj.updateCameraFocal();
+          break;
+        case "]":
+          camera.changeFocal(-focalStep);
+          tracerObj.updateCameraFocal();
+          break;
+        case "1":
+          tracerObj._box.moveX(boxMoveSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "2":
+          tracerObj._box.moveX(-boxMoveSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "3":
+          tracerObj._box.moveY(boxMoveSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "4":
+          tracerObj._box.moveY(-boxMoveSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "5":
+          tracerObj._box.moveZ(boxMoveSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "6":
+          tracerObj._box.moveZ(-boxMoveSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "7":
+          tracerObj._box.rotateX(boxRotateSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "8":
+          tracerObj._box.rotateX(-boxRotateSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "9":
+          tracerObj._box.rotateY(boxRotateSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "0":
+          tracerObj._box.rotateY(-boxRotateSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "-":
+          tracerObj._box.rotateZ(boxRotateSpeed);
+          tracerObj.updateBoxPose();
+          break;
+        case "=":
+          tracerObj._box.rotateZ(-boxRotateSpeed);
+          tracerObj.updateBoxPose();
           break;
         default:
           return;
       }
-      _0x2b7011[_0x15757f(0x22d)](), _0x17790e[_0x15757f(0x233)]();
+      if (!["[", "]"].includes(event.key.toLowerCase())) {
+        tracerObj.updateCameraPose();
+      }
     },
-    !![]
+    true
   );
-  var _0x4a216f = 0x0,
-    _0x4a54b1 = 0x3c,
-    _0x319ae5 = 0x1 / _0x4a54b1,
-    _0x306197 = _0x319ae5 * 0x3e8,
-    _0x10f8cb;
-  let _0x298dd2 = () => {
-    const _0x3bbfe3 = _0x5c89fe;
-    let _0x5b344d = Date[_0x3bbfe3(0x1db)]() - _0x10f8cb;
-    _0x5b344d > _0x306197 &&
-      (++_0x4a216f,
-      (_0x10f8cb = Date[_0x3bbfe3(0x1db)]() - (_0x5b344d % _0x306197)),
-      _0x4a25e3[_0x3bbfe3(0x1d6)]()),
-      requestAnimationFrame(_0x298dd2);
+  var frameCnt = 0;
+  var tgtFPS = 60;
+  var secPerFrame = 1 / tgtFPS;
+  var frameInterval = secPerFrame * 1000;
+  var lastCalled;
+  let renderFrame = () => {
+    let elapsed = Date.now() - lastCalled;
+    if (elapsed > frameInterval) {
+      ++frameCnt;
+      lastCalled = Date.now() - (elapsed % frameInterval);
+      tracer.render();
+    }
+    requestAnimationFrame(renderFrame);
   };
-  return (
-    (_0x10f8cb = Date["now"]()),
-    _0x298dd2(),
-    setInterval(() => {
-      const _0x4a043f = _0x5c89fe;
-      _0xa42470[_0x4a043f(0x200)](
-        _0x4a043f(0x1e1) + _0x4a216f + "\x0a\x0a" + _0x69c7e7
-      ),
-        (_0x4a216f = 0x0);
-    }, 0x3e8),
-    _0x4a25e3
-  );
+  lastCalled = Date.now();
+  renderFrame();
+  setInterval(() => {
+    fpsText.updateText("fps: " + frameCnt + "\n\n" + controlsText);
+    frameCnt = 0;
+  }, 1000);
+  return tracer;
 }
 init()
-  ["then"]((_0x25197e) => {
-    const _0x578ba8 = _0x1c9c99;
-    console[_0x578ba8(0x18a)](_0x25197e);
+  .then((ret) => {
+    console.log(ret);
   })
-  [_0x1c9c99(0x163)]((_0x4b10c6) => {
-    const _0x1048fd = _0x1c9c99,
-      _0x348098 = document[_0x1048fd(0x224)]("p");
-    (_0x348098[_0x1048fd(0x208)] =
-      navigator["userAgent"] + _0x1048fd(0x1cc) + _0x4b10c6[_0x1048fd(0x169)]),
-      document[_0x1048fd(0x1e0)][_0x1048fd(0x161)](_0x348098),
-      document[_0x1048fd(0x198)](_0x1048fd(0x1d4))[_0x1048fd(0x16d)]();
+  .catch((error) => {
+    const pTag = document.createElement("p");
+    pTag.innerHTML = navigator.userAgent + "</br>" + error.message;
+    document.body.appendChild(pTag);
+    document.getElementById("renderCanvas").remove();
   });
